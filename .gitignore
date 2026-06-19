@@ -67,3 +67,6 @@ vcpkg_installed/
 # test output & cache
 Testing/
 .cache/
+AGS/x64/
+AGS/.vs/AGS/CopilotIndices/17.14.1681.23550/CodeChunks.db
+AGS/.vs/
