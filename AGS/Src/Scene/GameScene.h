@@ -59,6 +59,7 @@ private:
 
 	int seId_;
 	int footSeId_;
+	int enemyFootSeId_;
 
 	VECTOR startPos_;  // 発射開始位置
 	float maxDistance = 1000.0f;  // これ以上飛んだら停止
@@ -76,6 +77,8 @@ private:
 
 	void CircleCollisionSet(void);
 	void CircleMove(void);
+	
+	void DistanceSoundVolume(const VECTOR& soundPos, const VECTOR& soundPos2, int soundId);
 
 	// 追加するメンバ変数（クラス内）
 	VECTOR vel = VGet(0.0f, 0.0f, 0.0f); // 初期速度

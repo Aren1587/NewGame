@@ -41,6 +41,9 @@ void GameScene::Init(void)
 	footSeId_ = LoadSoundMem((Application::PATH_SE + "FootStep.mp3").c_str());
 	ChangeVolumeSoundMem(200.0f, footSeId_);
 
+	enemyFootSeId_ = LoadSoundMem((Application::PATH_SE + "EnemyFootStep.mp3").c_str());
+	ChangeVolumeSoundMem(200.0f, enemyFootSeId_);
+
 	state_ = PauseMenu::MENU_STATE::MAIN;
 }
 
@@ -94,6 +97,15 @@ void GameScene::Update(void)
 
 	stage_->Update();
 	enemy_->Update();
+
+	// 距離に応じて音量を調整
+	DistanceSoundVolume(SceneManager::GetInstance().GetCamera().GetPos(), enemy_->GetPos(), enemyFootSeId_);
+
+	// 足音ループ
+	if (!CheckSoundMem(enemyFootSeId_))
+	{
+		PlaySoundMem(enemyFootSeId_, DX_PLAYTYPE_BACK);
+	}
 	
 
 	// 発射キー
@@ -188,6 +200,9 @@ void GameScene::Release(void)
 
 	StopSoundMem(footSeId_);
 	DeleteSoundMem(footSeId_);
+
+	StopSoundMem(enemyFootSeId_);
+	DeleteSoundMem(enemyFootSeId_);
 }
 
 bool GameScene::CollisionCamera(void)
@@ -288,9 +303,16 @@ void GameScene::CircleCollisionSet(void)
 	isMove = false;
 
 	// 距離に応じた音量調整
-	VECTOR playerPos = SceneManager::GetInstance().GetCamera().GetPos(); // ← プレイヤーの位置を取得（クラスに応じて変更）
-	VECTOR soundPos = circlePos_;
-	float distance = VSize(VSub(soundPos, playerPos));
+	DistanceSoundVolume(SceneManager::GetInstance().GetCamera().GetPos(), circlePos_, seId_);
+	PlaySoundMem(seId_, DX_PLAYTYPE_BACK);
+}
+
+void GameScene::DistanceSoundVolume(const VECTOR& soundPos, const VECTOR& soundPos2, int soundId)
+{
+	// 距離に応じた音量調整
+	VECTOR pos1 = soundPos;
+	VECTOR pos2 = soundPos2;
+	float distance = VSize(VSub(soundPos, soundPos2));
 
 	const float MAX_DISTANCE = 2000.0f; // 聞こえる最大距離
 	const int MAX_VOLUME = 255;
@@ -300,8 +322,7 @@ void GameScene::CircleCollisionSet(void)
 	t = std::clamp(t, 0.0f, 1.0f);
 	int volume = static_cast<int>(t * MAX_VOLUME);
 
-	ChangeVolumeSoundMem(volume, seId_);
-	PlaySoundMem(seId_, DX_PLAYTYPE_BACK);
+	ChangeVolumeSoundMem(volume, soundId);
 }
 
 void GameScene::CircleMove(void)
