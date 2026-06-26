@@ -129,4 +129,8 @@
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
   </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="Src\Shader\LightVS.hlsl" />
+    <FxCompile Include="Src\Shader\LightPS.hlsl" />
+  </ItemGroup>
 </Project>
