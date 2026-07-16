@@ -209,7 +209,7 @@ float SceneManager::GetDeltaTime(void) const
 
 void SceneManager::SetCameraNear(float ne)
 {
-	camera_->SetFarClip(ne);
+	//camera_->SetFarClip(ne);
 }
 
 SceneManager::SceneManager(void)

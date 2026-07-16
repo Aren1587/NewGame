@@ -53,11 +53,11 @@ VS_OUTPUT main(VS_INPUT VSInput)
     
     // その他、ピクセルシェーダへ引継&初期化 ++++++++++++( 開始 )
     // UV座標
-    //ret.uv.x = VSInput.uv0.x;
-    //ret.uv.y = VSInput.uv0.y;
+    ret.uv.x = VSInput.uv0.x;
+    ret.uv.y = VSInput.uv0.y;
     
-    ret.uv.x = VSInput.uv0.x * g_uv_scale.x;
-    ret.uv.y = VSInput.uv0.y * g_uv_scale.y;
+    //ret.uv.x = VSInput.uv0.x * g_uv_scale.x;
+    //ret.uv.y = VSInput.uv0.y * g_uv_scale.y;
     
     // 法線をローカル空間からワールド空間へ変換
     ret.normal = normalize(mul(VSInput.norm, (float3x3) g_base.localWorldMatrix));

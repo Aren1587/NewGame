@@ -1,5 +1,9 @@
 #include <DxLib.h>
+#include <memory>
 #include "../Application.h"
+#include "../Renderer/ModelMaterial.h"
+#include "../Renderer/ModelRenderer.h"
+
 #include "Stage.h"
 
 Stage::Stage(void)
@@ -40,6 +44,15 @@ void Stage::Init(void)
 	MV1SetupCollInfo(goalModelId_);
 
 	SetUseBackCulling(FALSE);
+
+	vertexMaterial_ = std::make_unique<ModelMaterial>(
+		"LightVS.cso", 1,
+		"LightPS.cso", 1);
+
+	auto dir = GetLightDirection();
+	vertexMaterial_->AddConstBufPS({ dir.x, dir.y, dir.z, 0.0f });
+
+	vertexRenderer_ = std::make_unique<ModelRenderer>(modelId_, *vertexMaterial_);
 }
 
 void Stage::Update(void)
@@ -51,9 +64,10 @@ void Stage::Draw(void)
 	DrawGraph(0, 0, skyImg, true);
 
 	// ƒ[ƒh‚³‚ê‚½‚R‚cƒ‚ƒfƒ‹‚ð‰æ–Ê‚É•`‰æ
-	MV1DrawModel(modelId_);
-	MV1DrawModel(goalModelId_);
-	MV1DrawModel(backModelId_);
+	vertexRenderer_->Draw();
+	////MV1DrawModel(modelId_);
+	//MV1DrawModel(goalModelId_);
+	//MV1DrawModel(backModelId_);
 }
 
 void Stage::Release(void)

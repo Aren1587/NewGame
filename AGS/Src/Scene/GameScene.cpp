@@ -128,7 +128,7 @@ void GameScene::Update(void)
 
 		circlePos_ = VAdd(cameraPos, moveDir_);
 
-		pow = 00.0f;
+		pow = 0.0f;
 		powdddd = 20.0f;  // 移動速度
 		
 	}
