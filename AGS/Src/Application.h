@@ -17,6 +17,7 @@ public:
 	static const std::string PATH_MODEL;
 	static const std::string PATH_EFFECT;
 	static const std::string PATH_SE;
+	static const std::string PATH_SHADER;
 	//-------------------------------------------
 
 	// インスタンスを明示的に生成

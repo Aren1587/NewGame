@@ -11,6 +11,7 @@ const std::string Application::PATH_IMAGE = PATH_DATA + "Image/";
 const std::string Application::PATH_MODEL = PATH_DATA + "Model/";
 const std::string Application::PATH_EFFECT = PATH_DATA + "Effect/";
 const std::string Application::PATH_SE = PATH_DATA + "SE/";
+const std::string Application::PATH_SHADER = PATH_DATA + "Shader/";
 
 void Application::CreateInstance(void)
 {
