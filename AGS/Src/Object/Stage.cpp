@@ -1,6 +1,7 @@
 #include <DxLib.h>
 #include <memory>
 #include "../Application.h"
+#include "../Manager/SceneManager.h"
 #include "../Renderer/ModelMaterial.h"
 #include "../Renderer/ModelRenderer.h"
 
@@ -45,18 +46,36 @@ void Stage::Init(void)
 
 	SetUseBackCulling(FALSE);
 
+	// シェーダ
+	lightPos_ = VGet(0, 0, 0);
+	lightRadius_ = 0.0f;
+	isExpand_ = false;
+
 	vertexMaterial_ = std::make_unique<ModelMaterial>(
 		"LightVS.cso", 1,
 		"LightPS.cso", 1);
 
-	auto dir = GetLightDirection();
-	vertexMaterial_->AddConstBufPS({ dir.x, dir.y, dir.z, 0.0f });
+	time_ = 1.0f;
+
+	vertexMaterial_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, time_ });
 
 	vertexRenderer_ = std::make_unique<ModelRenderer>(modelId_, *vertexMaterial_);
 }
 
 void Stage::Update(void)
 {
+	if (isExpand_)
+	{
+		lightRadius_ += 600.0f * SceneManager::GetInstance().GetDeltaTime() * 0.05f;
+
+		if (lightRadius_ > 3000.0f)
+		{
+			lightRadius_ = 3000.0f;
+			isExpand_ = false;
+		}
+	}
+
+	vertexMaterial_->SetConstBufPS(0, { lightPos_.x, lightPos_.y, lightPos_.z, lightRadius_ });
 }
 
 void Stage::Draw(void)
@@ -76,4 +95,11 @@ void Stage::Release(void)
 	MV1DeleteModel(modelId_);
 	MV1DeleteModel(goalModelId_);
 	MV1DeleteModel(backModelId_);
+}
+
+void Stage::StartLight(const VECTOR& pos)
+{
+	lightPos_ = pos;
+	lightRadius_ = 0.0f;
+	isExpand_ = true;
 }

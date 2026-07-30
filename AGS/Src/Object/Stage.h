@@ -22,6 +22,10 @@ public:
 	int GetGoalModelId() { return goalModelId_; }
 
 	void SetLightHitPos(VECTOR pos) { lightHitPos_ = pos; }
+
+	void IsSetTime(void) { time_ = 1.0f; }
+
+	void StartLight(const VECTOR& pos);
 private:
 
 	std::unique_ptr<ModelMaterial> vertexMaterial_;
@@ -65,5 +69,9 @@ private:
 	int constBufVS_;
 
 	const int CONSTANT_BUF_SLOT_BEGIN_VS = 1;
+
+	VECTOR lightPos_;
+	float lightRadius_;
+	bool isExpand_;
 };
 

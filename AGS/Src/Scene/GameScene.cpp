@@ -296,6 +296,7 @@ void GameScene::CircleCollisionSet(void)
 {
 	// 接地
 	//sceneMana.SetPointLightPos(circlePos_);
+	stage_->StartLight(circlePos_);
 	SceneManager::GetInstance().GetLight().IsPointLightPow(circlePos_);
 	enemy_->SetTargetPos(circlePos_);
 	isCollision_ = true;
