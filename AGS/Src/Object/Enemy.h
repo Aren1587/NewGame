@@ -1,6 +1,10 @@
 #pragma once
 
 #include <DxLib.h>
+#include <memory>
+
+class ModelMaterial;
+class ModelRenderer;
 class AnimationController;
 
 class Enemy
@@ -54,7 +58,17 @@ public:
 	VECTOR GetHeadPos(void);
 
 	void LookAtCameraAndSetMatrix(int modelId, VECTOR& pos, float& currentAngleY, const VECTOR& cameraPos, float lerpSpeed);
+
+	void StartLight(const VECTOR& pos);
+
 private:
+
+	static constexpr float RADIUS_MAX_SIZE = 6000.0f;
+	static constexpr float RADIUS_SIZE = 200.0f;
+	static constexpr float RADIUS_SPEED = 600.0f;
+
+	std::unique_ptr<ModelMaterial> vertexMaterial_;
+	std::unique_ptr<ModelRenderer> vertexRenderer_;
 
 	static constexpr VECTOR SPOT1_POS = { -60.0f, 300.0f, 4775.0f };
 	static constexpr VECTOR SPOT2_POS = { 0.0f, 300.0f, 0.0f };
@@ -87,6 +101,11 @@ private:
 	bool isMoveSpot_;
 
 	bool isCollision_ = false;
+
+	VECTOR lightPos_;
+	float lightRadius_;
+	float notLightRadius_;
+	bool isExpand_;
 
 	void Move();
 };

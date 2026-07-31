@@ -28,6 +28,10 @@ public:
 	void StartLight(const VECTOR& pos);
 private:
 
+	static constexpr float RADIUS_MAX_SIZE = 6000.0f;
+	static constexpr float RADIUS_SIZE = 500.0f;
+	static constexpr float RADIUS_SPEED = 600.0f;
+
 	std::unique_ptr<ModelMaterial> vertexMaterial_;
 	std::unique_ptr<ModelRenderer> vertexRenderer_;
 
@@ -72,6 +76,7 @@ private:
 
 	VECTOR lightPos_;
 	float lightRadius_;
+	float notLightRadius_;
 	bool isExpand_;
 };
 

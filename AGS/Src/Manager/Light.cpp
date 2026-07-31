@@ -65,7 +65,7 @@ void Light::UpdateLight(void)
 	// “ñ‚Â‚Æ‚àˆÃ‚¢‚©
 	if (allInactive)
 	{
-		SceneManager::GetInstance().SetCameraNear(100.0f);
+		//SceneManager::GetInstance().SetCameraNear(100.0f);
 	}
 }
 

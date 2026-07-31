@@ -1,6 +1,8 @@
 #include "Enemy.h"
 #include "../Application.h"
 #include "../Manager/SceneManager.h"
+#include "../Renderer/ModelMaterial.h"
+#include "../Renderer/ModelRenderer.h"
 #include "../Manager/Camera.h"
 #include "../Utility/AsoUtility.h"
 #include "Common/AnimationController.h"
@@ -44,6 +46,21 @@ void Enemy::Init(void)
 	pos_ = { 0.0f, 0.0f, 0.0f };
 	MV1SetPosition(modelId_, pos_);
 	MV1SetRotationXYZ(modelId_, { 0.0f, 0.0f, 0.0f });
+
+	// シェーダ
+	lightPos_ = VGet(0, 0, 0);
+	lightRadius_ = 0.0f;
+	notLightRadius_ = 0.0f;
+	isExpand_ = false;
+
+	vertexMaterial_ = std::make_unique<ModelMaterial>(
+		"LightVS.cso", 1,
+		"LightPS.cso", 2);
+
+	vertexMaterial_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, lightRadius_ });
+	vertexMaterial_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, notLightRadius_ });
+
+	vertexRenderer_ = std::make_unique<ModelRenderer>(modelId_, *vertexMaterial_);
 }
 
 void Enemy::Update(void)
@@ -51,11 +68,31 @@ void Enemy::Update(void)
 	Move();
 	// アニメーション再生
 	animationController_->Update();
+
+	if (isExpand_)
+	{
+		lightRadius_ += RADIUS_SPEED * SceneManager::GetInstance().GetDeltaTime() * 0.05f;
+
+		if (lightRadius_ > RADIUS_MAX_SIZE)
+		{
+			lightRadius_ = RADIUS_MAX_SIZE;
+			isExpand_ = false;
+		}
+	}
+
+	if (lightRadius_ >= RADIUS_SIZE)
+	{
+		notLightRadius_ += RADIUS_SPEED * SceneManager::GetInstance().GetDeltaTime() * 0.05f;
+	}
+
+	vertexMaterial_->SetConstBufPS(0, { lightPos_.x, lightPos_.y, lightPos_.z, lightRadius_ });
+	vertexMaterial_->SetConstBufPS(1, { notLightRadius_, 0.0f, 0.0f, 0.0f });
 }
 
 void Enemy::Draw(void)
 {
-	MV1DrawModel(modelId_);
+	//MV1DrawModel(modelId_);
+	vertexRenderer_->Draw();
 }
 
 void Enemy::Release(void)
@@ -165,4 +202,12 @@ void Enemy::LookAtCameraAndSetMatrix(int modelId, VECTOR& pos, float& currentAng
 	rotMat.m[3][2] = pos.z;
 
 	MV1SetMatrix(modelId, rotMat);
+}
+
+void Enemy::StartLight(const VECTOR& pos)
+{
+	lightPos_ = pos;
+	lightRadius_ = 0.0f;
+	notLightRadius_ = 0.0f;
+	isExpand_ = true;
 }

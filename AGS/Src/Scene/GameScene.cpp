@@ -106,7 +106,6 @@ void GameScene::Update(void)
 	{
 		PlaySoundMem(enemyFootSeId_, DX_PLAYTYPE_BACK);
 	}
-	
 
 	// 発射キー
 	if ((CheckHitKey(KEY_INPUT_SPACE) || ins.IsPadBtnNew(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
@@ -297,6 +296,7 @@ void GameScene::CircleCollisionSet(void)
 	// 接地
 	//sceneMana.SetPointLightPos(circlePos_);
 	stage_->StartLight(circlePos_);
+	enemy_->StartLight(circlePos_);
 	SceneManager::GetInstance().GetLight().IsPointLightPow(circlePos_);
 	enemy_->SetTargetPos(circlePos_);
 	isCollision_ = true;

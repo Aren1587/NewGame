@@ -90,7 +90,7 @@ void SceneManager::Init3D(void)
 	SetFogColor(100, 100, 100);
 
 	// フォグを発生させる奥行きの最小、最大距離
-	SetFogStartEnd(0 , 8000);
+	SetFogStartEnd(0 , 80000);
 
 	DeltaTimeInit();
 }

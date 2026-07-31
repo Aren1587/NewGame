@@ -21,7 +21,7 @@ void Camera::Init(void)
 	angles_ = DEFAULT_ANGLES;
 
 	farClip_ = CAMERA_FAR;
-	farClip_ = 100.0f;
+	//farClip_ = 100.0f;
 
 	isMove_ = false;
 }
@@ -36,7 +36,7 @@ void Camera::Update(void)
 void Camera::SetBeforeDraw(void)
 {
 	// ƒNƒŠƒbƒv‹——£‚ğİ’è
-	SetCameraNearFar(CAMERA_NEAR, farClip_);
+	//SetCameraNearFar(CAMERA_NEAR, farClip_);
 
 	switch (mode_)
 	{

@@ -11,6 +11,8 @@ cbuffer cbParam : register(b4)
 {
     float3 lightHitPos;
     float lightRadius;
+    float notLightRadius;
+    float3 dummy;
 }
 
 float4 main(PS_INPUT PSInput) : SV_TARGET0
@@ -22,21 +24,21 @@ float4 main(PS_INPUT PSInput) : SV_TARGET0
 
     if (dist < lightRadius)
     {
-        if (dist < lightRadius)
-        {
-            // ”¼Œa“à‚¾‚¯”’
-            color.rgb = float3(1.0, 1.0, 1.0);
+        if(dist < notLightRadius)
+        {    
+            // ‚»‚êˆÈŠO‚ÍˆÃ‚­
+            color.rgb *= 0.05f;
         }
         else
         {
-            color.rgb *= 0.05;
+           // ”¼Œa“à‚¾‚¯”’
+            color.rgb *= float3(1.0, 1.0, 1.0);
         }
-
     }
     else
     {
-    // ‚»‚êˆÈŠO‚ÍˆÃ‚­
-        color.rgb *= 0.05;
+        // ‚»‚êˆÈŠO‚ÍˆÃ‚­
+        color.rgb *= 0.05f;
     }
 
     return color;
