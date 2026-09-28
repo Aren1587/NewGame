@@ -23,17 +23,18 @@ public:
 
 	void SetLightHitPos(VECTOR pos) { lightHitPos_ = pos; }
 
-	void IsSetTime(void) { time_ = 1.0f; }
-
 	void StartLight(const VECTOR& pos);
 private:
 
-	static constexpr float RADIUS_MAX_SIZE = 6000.0f;
-	static constexpr float RADIUS_SIZE = 500.0f;
-	static constexpr float RADIUS_SPEED = 600.0f;
+	static constexpr float RADIUS_MAX_SIZE = 2000.0f;
+	static constexpr float RADIUS_SIZE = 400.0f;
+	static constexpr float RADIUS_SPEED = 400.0f;
 
 	std::unique_ptr<ModelMaterial> vertexMaterial_;
 	std::unique_ptr<ModelRenderer> vertexRenderer_;
+
+	std::unique_ptr<ModelMaterial> goalVertexMaterial_;
+	std::unique_ptr<ModelRenderer> goalVertexRenderer_;
 
 	static constexpr VECTOR STAGE_INIT_POS = { 0.0f, -100.0f, 0.0f };
 	static constexpr VECTOR GOAL_INIT_POS = { -2500.0f, 0.0f, 9050.0f };
@@ -47,9 +48,6 @@ private:
 	int backModelId_;
 
 	int skyImg;
-
-	// 時間
-	float time_;
 
 	float dissolveTime_;
 
@@ -71,6 +69,25 @@ private:
 
 	// 定数バッファハンドル
 	int constBufVS_;
+	//------
+	// シェーダ
+	int goalShader_;
+
+	// 定数バッファの確保サイズ(FLOAT4をいくつ作るか)
+	int goalConstBufFloat4Size_;
+
+	// 定数バッファハンドル
+	int goalConstBuf_;
+
+
+	// シェーダ
+	int goalShaderVS_;
+
+	// 定数バッファの確保サイズ(FLOAT4をいくつ作るか)
+	int goalConstBufFloat4SizeVS_;
+
+	// 定数バッファハンドル
+	int goalConstBufVS_;
 
 	const int CONSTANT_BUF_SLOT_BEGIN_VS = 1;
 

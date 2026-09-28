@@ -49,7 +49,9 @@ public:
 		DOWN,
 		R_TRIGGER,
 		L_TRIGGER,
-		MENU,
+		R2_TRIGGER,
+		L2_TRIGGER,
+		OPTION,
 		MAX
 	};
 

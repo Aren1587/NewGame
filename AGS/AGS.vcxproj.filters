@@ -72,6 +72,18 @@
     <ClCompile Include="Src\Manager\Light.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Renderer\ModelMaterial.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\ModelRenderer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\PixelMaterial.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\PixelRenderer.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Application.h">
@@ -128,10 +140,26 @@
     <ClInclude Include="Src\Manager\Light.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Src\Renderer\ModelMaterial.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\ModelRenderer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\PixelMaterial.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\PixelRenderer.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="Src\Shader\LightVS.hlsl" />
-    <FxCompile Include="Src\Shader\LightPS.hlsl" />
+    <FxCompile Include="Src\Shader\Vertex\LightPS.hlsl" />
+    <FxCompile Include="Src\Shader\Vertex\LightVS.hlsl" />
+    <FxCompile Include="Src\Shader\Vertex\EnemyPS.hlsl" />
+    <FxCompile Include="Src\Shader\Vertex\EnemyVS.hlsl" />
+    <FxCompile Include="Src\Shader\Vertex\GoalPS.hlsl" />
+    <FxCompile Include="Src\Shader\Vertex\GoalVS.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Shader\Common\VertexToPixelHeader.hlsli" />

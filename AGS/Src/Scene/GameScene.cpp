@@ -68,7 +68,8 @@ void GameScene::Update(void)
 	}
 
 	// Escapeキーでポーズ切り替え
-	if ((rePress == 0 && newPress == 1))
+	if (InputManager::GetInstance().IsTrgDown(KEY_INPUT_ESCAPE) ||
+		InputManager::GetInstance().IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::OPTION))
 	{
 		pauseMenu_->Toggle();
 	}

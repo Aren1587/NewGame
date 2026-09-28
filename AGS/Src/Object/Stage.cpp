@@ -56,12 +56,21 @@ void Stage::Init(void)
 		"LightVS.cso", 1,
 		"LightPS.cso", 2);
 
-	time_ = 1.0f;
-
 	vertexMaterial_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, lightRadius_ });
-	vertexMaterial_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, notLightRadius_ });
+	vertexMaterial_->AddConstBufPS({ notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
 
 	vertexRenderer_ = std::make_unique<ModelRenderer>(modelId_, *vertexMaterial_);
+
+	// -------------------
+
+	goalVertexMaterial_ = std::make_unique<ModelMaterial>(
+		"GoalVS.cso", 1,
+		"GoalPS.cso", 2);
+
+	goalVertexMaterial_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, lightRadius_ });
+	goalVertexMaterial_->AddConstBufPS({ notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
+
+	goalVertexRenderer_ = std::make_unique<ModelRenderer>(goalModelId_, *goalVertexMaterial_);
 }
 
 void Stage::Update(void)
@@ -83,15 +92,19 @@ void Stage::Update(void)
 	}
 
 	vertexMaterial_->SetConstBufPS(0, { lightPos_.x, lightPos_.y, lightPos_.z, lightRadius_ });
-	vertexMaterial_->SetConstBufPS(1, { notLightRadius_, 0.0f, 0.0f, 0.0f });
+	vertexMaterial_->SetConstBufPS(1, { notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
+
+	goalVertexMaterial_->SetConstBufPS(0, { lightPos_.x, lightPos_.y, lightPos_.z, lightRadius_ });
+	goalVertexMaterial_->SetConstBufPS(1, { notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
 }
 
 void Stage::Draw(void)
 {
-	DrawGraph(0, 0, skyImg, true);
+	//DrawGraph(0, 0, skyImg, true);
 
 	// ƒ[ƒh‚³‚ê‚½‚R‚cƒ‚ƒfƒ‹‚ð‰æ–Ê‚É•`‰æ
 	vertexRenderer_->Draw();
+	goalVertexRenderer_->Draw();
 	////MV1DrawModel(modelId_);
 	//MV1DrawModel(goalModelId_);
 	//MV1DrawModel(backModelId_);

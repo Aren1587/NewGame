@@ -11,8 +11,10 @@ cbuffer cbParam : register(b4)
 {
     float3 lightHitPos;
     float lightRadius;
+    
     float notLightRadius;
-    float3 dummy;
+    float maxLightRadiusSize;
+    float2 dummy;
 }
 
 float4 main(PS_INPUT PSInput) : SV_TARGET0
@@ -21,25 +23,30 @@ float4 main(PS_INPUT PSInput) : SV_TARGET0
 
     // ’…’n“_‚©‚ç‚Ì‹——£
     float dist = distance(PSInput.worldpos, lightHitPos);
-
-    if (dist < lightRadius)
+    
+    // Å‘å‚æ‚è‘å‚«‚¢ or Å¬‚æ‚è¬‚³‚¢
+    if (lightRadius < dist || dist < notLightRadius)
     {
-        if(dist < notLightRadius)
-        {    
-            // ‚»‚êˆÈŠO‚ÍˆÃ‚­
-            color.rgb *= 0.05f;
-        }
-        else
-        {
-           // ”¼Œa“à‚¾‚¯”’
-            color.rgb *= float3(1.0, 1.0, 1.0);
-        }
+        color.rgb = 0.0f;
+        return color;
     }
-    else
-    {
-        // ‚»‚êˆÈŠO‚ÍˆÃ‚­
-        color.rgb *= 0.05f;
-    }
+    
+    // ”’‚ÌˆÊ’u
+    float whitePos = (notLightRadius + lightRadius) * 0.5f;
 
+    // ”’‚ÌˆÊ’u‚©‚ç‚Ì‹——£
+    float d = abs(dist - whitePos);
+
+    // ”¼•ª‚Ì•
+    float halfWidth = (lightRadius - notLightRadius) * 0.5f;
+
+    // •¨”’¨• (0`1`0)
+    float intensity = 1.0f - saturate(d / halfWidth);
+
+    // ŠŠ‚ç‚©‚É
+    intensity = smoothstep(0.0f, 1.0f, intensity);
+
+    color.rgb *= intensity;
+    
     return color;
 }

@@ -63,9 +63,9 @@ public:
 
 private:
 
-	static constexpr float RADIUS_MAX_SIZE = 6000.0f;
-	static constexpr float RADIUS_SIZE = 200.0f;
-	static constexpr float RADIUS_SPEED = 600.0f;
+	static constexpr float RADIUS_MAX_SIZE = 2000.0f;
+	static constexpr float RADIUS_SIZE = 400.0f;
+	static constexpr float RADIUS_SPEED = 400.0f;
 
 	std::unique_ptr<ModelMaterial> vertexMaterial_;
 	std::unique_ptr<ModelRenderer> vertexRenderer_;
@@ -101,6 +101,8 @@ private:
 	bool isMoveSpot_;
 
 	bool isCollision_ = false;
+
+	float time_ = 0.0f;
 
 	VECTOR lightPos_;
 	float lightRadius_;

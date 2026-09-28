@@ -49,8 +49,21 @@ void TitleScene::Draw(void)
 		Application::SCREEN_SIZE_Y / 2,
 		0.5f, 0.0, imgTitle_, true);
 
-	//DrawString((Application::SCREEN_SIZE_X - GetDrawStringWidth("Space/Aでスタート", strlen("Space?Aでスタート"))) / 2, Application::SCREEN_SIZE_Y - 30, "Space/Aでスタート", GetColor(255, 255, 255));
+	// 点滅処理
+	float time = GetNowHiPerformanceCount() / 1000000.0f;
+
+	// 0.0 ～ 1.0
+	float alpha = (sinf(time * 3.0f) + 1.0f) * 0.5f;
+
+	// 140 ～ 255 の範囲で明滅
+	int alphaValue = 140 + (int)(alpha * 115.0f);
+
+	SetDrawBlendMode(DX_BLENDMODE_ALPHA, alphaValue);
+
 	DrawFont("Space/Aでスタート");
+
+	// ブレンド設定を元に戻す
+	SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 
 	pauseMenu_->Draw();
 }

@@ -1,11 +1,11 @@
 #include "Enemy.h"
 #include "../Application.h"
 #include "../Manager/SceneManager.h"
-#include "../Renderer/ModelMaterial.h"
-#include "../Renderer/ModelRenderer.h"
 #include "../Manager/Camera.h"
 #include "../Utility/AsoUtility.h"
 #include "Common/AnimationController.h"
+#include "../Renderer/ModelMaterial.h"
+#include "../Renderer/ModelRenderer.h"
 
 
 Enemy::Enemy(void)
@@ -27,9 +27,10 @@ Enemy::~Enemy(void)
 
 void Enemy::Init(void)
 {
-	modelId_ = MV1LoadModel((Application::PATH_MODEL + "Enemy/BlueDemon.mv1").c_str());
+	modelId_ = MV1LoadModel(
+		(Application::PATH_MODEL + "Enemy/BlueDemon.mv1").c_str());
 
-	MV1SetWireFrameDrawFlag(modelId_, TRUE);
+	MV1SetScale(modelId_, { 1.0f, 1.0f, 1.0f });
 
 	// アニメーションの設定
 	animationController_ = new AnimationController(modelId_);
@@ -42,7 +43,7 @@ void Enemy::Init(void)
 		}
 		animationController_->AddInFbx(i, 30.0f, i);
 	}
-	animationController_->Play(static_cast<int>(ANIM_TYPE::WAVE));
+	
 	pos_ = { 0.0f, 0.0f, 0.0f };
 	MV1SetPosition(modelId_, pos_);
 	MV1SetRotationXYZ(modelId_, { 0.0f, 0.0f, 0.0f });
@@ -54,17 +55,22 @@ void Enemy::Init(void)
 	isExpand_ = false;
 
 	vertexMaterial_ = std::make_unique<ModelMaterial>(
-		"LightVS.cso", 1,
-		"LightPS.cso", 2);
+		"EnemyVS.cso", 1,
+		"EnemyPS.cso", 2);
 
+	// エネミーのサイズに合わせてライト半径の最大値を調整
+	// BlueDemonモデルは小さいので、RADIUS_MAX_SIZEをもっと小さくする
 	vertexMaterial_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, lightRadius_ });
-	vertexMaterial_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, notLightRadius_ });
+	vertexMaterial_->AddConstBufPS({ notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
+	vertexMaterial_->AddConstBufVS({ 1, 1, 1.0f, 0.0f });
 
 	vertexRenderer_ = std::make_unique<ModelRenderer>(modelId_, *vertexMaterial_);
 }
 
 void Enemy::Update(void)
 {
+	time_ += SceneManager::GetInstance().GetDeltaTime() * 0.05f;
+
 	Move();
 	// アニメーション再生
 	animationController_->Update();
@@ -86,13 +92,14 @@ void Enemy::Update(void)
 	}
 
 	vertexMaterial_->SetConstBufPS(0, { lightPos_.x, lightPos_.y, lightPos_.z, lightRadius_ });
-	vertexMaterial_->SetConstBufPS(1, { notLightRadius_, 0.0f, 0.0f, 0.0f });
+	vertexMaterial_->SetConstBufPS(1, { notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
+	vertexMaterial_->SetConstBufVS(0, { 1, 1, 1.0f, time_ });
 }
 
 void Enemy::Draw(void)
 {
-	//MV1DrawModel(modelId_);
-	vertexRenderer_->Draw();
+	MV1DrawModel(modelId_);
+	//vertexRenderer_->Draw();
 }
 
 void Enemy::Release(void)
@@ -160,7 +167,7 @@ void Enemy::Move()
 	// 回転処理（ターゲット方向を向く）
 	float angleY = atan2f(diff.x, diff.z);
 
-	// モデルが反対向きなら補正
+	// モデルが反対向きの場合は補正
 	const float angleOffset = DX_PI_F;
 	float finalAngleY = angleY + angleOffset;
 
