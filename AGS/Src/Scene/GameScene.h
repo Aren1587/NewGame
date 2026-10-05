@@ -10,19 +10,6 @@ class Enemy;
 class GameScene : public SceneBase
 {
 public:
-	constexpr static VECTOR GAMEOVER_POS = { 450.0f, 30.0f, 75.0f };
-	constexpr static float GAMEOVER_COLLISION_RADIUS = 35.0f;
-
-	constexpr static int NEXTWAVE_SIZE_WID = 624;
-	constexpr static VECTOR NEXTWAVE_INIT_POS = { Application::SCREEN_SIZE_X + NEXTWAVE_SIZE_WID / 2, Application::SCREEN_SIZE_Y / 2, 0.0f };
-	constexpr static float NEXTWAVE_MOVE_SPEED = 10.0f;
-	constexpr static float NEXTWAVE_STOP_TIME = 1.0f;
-
-	constexpr static float GRAVITY = 0.08f;
-
-	constexpr static float CIRCLE_RADIUS = 80.0f;
-
-
 	// コンストラクタ
 	GameScene(void);
 
@@ -37,14 +24,17 @@ public:
 	bool CollisionCamera(void);
 
 private:
+	constexpr static float GRAVITY = 0.08f;
+	constexpr static float CIRCLE_RADIUS = 80.0f;
+
 	// ステージインスタンス
 	Stage* stage_; 
 
 	Enemy* enemy_;
 
 	VECTOR circlePos_ = { 0,0,0 };
-	float pow = 20.0f;
-	float powdddd = 20.0f;
+	float pow_ = 20.0f;
+	float powdddd_ = 20.0f;
 
 	float lightPow_ = 0.0f;
 

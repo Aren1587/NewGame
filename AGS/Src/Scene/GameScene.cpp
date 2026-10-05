@@ -10,6 +10,16 @@
 #include <algorithm>
 
 GameScene::GameScene(void)
+	:
+	stage_(nullptr),
+	enemy_(nullptr),
+	circlePos_({}),
+	pow_(20.0f),
+	powdddd_(20.0f),
+	lightPow_(0.0f),
+	isCollision_(false),
+	moveDir_({}),
+	movePow({})
 {
 }
 
@@ -128,8 +138,8 @@ void GameScene::Update(void)
 
 		circlePos_ = VAdd(cameraPos, moveDir_);
 
-		pow = 0.0f;
-		powdddd = 20.0f;  // 移動速度
+		pow_ = 0.0f;
+		powdddd_ = 20.0f;  // 移動速度
 		
 	}
 
@@ -329,12 +339,12 @@ void GameScene::DistanceSoundVolume(const VECTOR& soundPos, const VECTOR& soundP
 
 void GameScene::CircleMove(void)
 {
-	circlePos_ = VAdd(circlePos_, VScale(moveDir_, powdddd * SceneManager::GetInstance().GetDeltaTime()));
+	circlePos_ = VAdd(circlePos_, VScale(moveDir_, powdddd_ * SceneManager::GetInstance().GetDeltaTime()));
 
 	circlePos_.x += movePow.x * SceneManager::GetInstance().GetDeltaTime();
-	pow -= GRAVITY * SceneManager::GetInstance().GetDeltaTime();
+	pow_ -= GRAVITY * SceneManager::GetInstance().GetDeltaTime();
 
-	circlePos_.y += pow * SceneManager::GetInstance().GetDeltaTime();
+	circlePos_.y += pow_ * SceneManager::GetInstance().GetDeltaTime();
 
 	isMove = true;
 
