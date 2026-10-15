@@ -1,16 +1,18 @@
 #pragma once
+
 #include <chrono>
+#include <memory>
 #include <DxLib.h>
+
 class SceneBase;
+class PauseMenu; 
 class Fader;
 class Camera;
 class Light;
 
 class SceneManager
 {
-
 public:
-
 	// シーン管理用
 	enum class SCENE_ID
 	{
@@ -20,13 +22,6 @@ public:
 		GAMEOVER,
 		CLEAR,
 	};
-
-	// 重力
-	static constexpr float GRAVITY = 9.81f;
-
-	// 配列サイズ
-	static constexpr int LIGHT_LENGTH = 1;
-
 	
 	// インスタンスの生成
 	static void CreateInstance(void);
@@ -61,7 +56,7 @@ public:
 	// デルタタイムの取得
 	float GetDeltaTime(void) const;
 
-	Camera& GetCamera(void) const{ return *camera_; }
+	const std::unique_ptr<Camera>& GetCamera(void) const{ return camera_; }
 	Light& GetLight(void)const { return *light_; }
 	
 	void SetCameraNear(float ne);
@@ -78,12 +73,15 @@ private:
 	// フェード
 	Fader* fader_;
 
+	std::unique_ptr<PauseMenu> pauseMenu_;
+
 	// 各種シーン
-	SceneBase* scene_;
+	//SceneBase* scene_;
+	std::unique_ptr<SceneBase> scene_;
 
 	// カメラ
-	Camera* camera_;
-	Light* light_;
+	std::unique_ptr<Camera> camera_;
+	std::unique_ptr<Light> light_;
 
 	int rePress, newPress;
 

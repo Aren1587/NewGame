@@ -19,6 +19,16 @@ void SceneBase::Init(void)
 {
 }
 
+void SceneBase::InitPauseMenu()
+{
+	pauseMenu_ = std::make_unique<PauseMenu>();
+
+	//pauseMenu_->SetActive(true);                // 表示ON
+	pauseMenu_->SetState(PauseMenu::MENU_STATE::CONFIRM);
+	pauseMenu_->SetSelectedIndex(1);            // 「いいえ」
+	pauseMenu_->ResetInput();                   // isT = true 相当
+}
+
 void SceneBase::Update(void)
 {
 }
@@ -96,7 +106,7 @@ void SceneBase::DrawFont(const char* text)
 {
 	//const char* text = "Space/Aでスタート";
 
-	int w = GetDrawStringWidthToHandle(text, strlen(text), fontPress_);
+	int w = GetDrawStringWidthToHandle(text, (int)strlen(text), fontPress_);
 	int x = (Application::SCREEN_SIZE_X - w) / 2;
 	int y = Application::SCREEN_SIZE_Y - 60;
 

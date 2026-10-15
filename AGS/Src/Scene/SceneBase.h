@@ -1,11 +1,12 @@
 #pragma once
+
+#include <memory>
 #include "PauseMenu.h"
 
 class PauseMenu;
 
 class SceneBase
 {
-
 public:
 	enum PAUSE_SCENE
 	{
@@ -26,6 +27,8 @@ public:
 	// 初期化処理
 	virtual void Init(void) = 0;
 
+	virtual void InitPauseMenu();
+
 	// 更新ステップ
 	virtual void Update(void) = 0;
 
@@ -41,9 +44,11 @@ public:
 	static void ReleaseFonts();
 
 	void DrawFont(const char* text);
+
 protected:
-	PauseMenu* pauseMenu_;
+	std::unique_ptr<PauseMenu> pauseMenu_;
 	int rePress, newPress;
 
 	PauseMenu::MENU_STATE state_;
+
 };

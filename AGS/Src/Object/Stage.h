@@ -1,4 +1,5 @@
 #pragma once
+
 #include <memory>
 
 class ModelMaterial;
@@ -24,20 +25,13 @@ public:
 	void SetLightHitPos(VECTOR pos) { lightHitPos_ = pos; }
 
 	void StartLight(const VECTOR& pos);
+
 private:
-
-	static constexpr float RADIUS_MAX_SIZE = 2000.0f;
-	static constexpr float RADIUS_SIZE = 400.0f;
-	static constexpr float RADIUS_SPEED = 400.0f;
-
 	std::unique_ptr<ModelMaterial> vertexMaterial_;
 	std::unique_ptr<ModelRenderer> vertexRenderer_;
 
 	std::unique_ptr<ModelMaterial> goalVertexMaterial_;
 	std::unique_ptr<ModelRenderer> goalVertexRenderer_;
-
-	static constexpr VECTOR STAGE_INIT_POS = { 0.0f, -100.0f, 0.0f };
-	static constexpr VECTOR GOAL_INIT_POS = { -2500.0f, 0.0f, 9050.0f };
 
 	VECTOR lightHitPos_;
 
@@ -49,8 +43,7 @@ private:
 
 	int skyImg;
 
-	float dissolveTime_;
-
+#pragma region シェーダ系
 	// シェーダ
 	int shader_;
 
@@ -59,7 +52,6 @@ private:
 
 	// 定数バッファハンドル
 	int constBuf_;
-
 
 	// シェーダ
 	int shaderVS_;
@@ -79,7 +71,6 @@ private:
 	// 定数バッファハンドル
 	int goalConstBuf_;
 
-
 	// シェーダ
 	int goalShaderVS_;
 
@@ -88,12 +79,12 @@ private:
 
 	// 定数バッファハンドル
 	int goalConstBufVS_;
-
-	const int CONSTANT_BUF_SLOT_BEGIN_VS = 1;
+#pragma endregion
 
 	VECTOR lightPos_;
 	float lightRadius_;
 	float notLightRadius_;
 	bool isExpand_;
+
 };
 

@@ -1,11 +1,11 @@
 #pragma once
+
 #include <map>
 #include <Dxlib.h>
 #include "../Common/Vector2.h"
 
 class InputManager
 {
-
 public:
 	// アナログキーの最大値
 	static constexpr float AKEY_VAL_MAX = 1000.0f;
@@ -133,7 +133,6 @@ public:
 	VECTOR GetDirectionXZAKey(int aKeyX, int aKeyY);
 
 private:
-
 	// キー情報
 	struct Info
 	{

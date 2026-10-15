@@ -9,17 +9,32 @@
 #include "GameScene.h"
 #include <algorithm>
 
+namespace
+{
+	constexpr int INIT_VOLUME = 200;
+
+	static float GRAVITY = 0.08f;
+	static float CIRCLE_RADIUS = 80.0f;
+}
+
 GameScene::GameScene(void)
 	:
 	stage_(nullptr),
 	enemy_(nullptr),
 	circlePos_({}),
 	pow_(20.0f),
-	powdddd_(20.0f),
+	moveSpeed_(20.0f),
 	lightPow_(0.0f),
 	isCollision_(false),
 	moveDir_({}),
-	movePow({})
+	movePow_({}),
+	isShooting_(false),
+	seId_(-1),
+	footSeId_(-1),
+	enemyFootSeId_(-1),
+	startPos_({}),
+	maxDistance_(1000.0f),
+	isMove_(false)
 {
 }
 
@@ -29,30 +44,26 @@ GameScene::~GameScene(void)
 
 void GameScene::Init(void)
 {
-	stage_ = new Stage();
+	stage_ = std::make_unique<Stage>();
 	stage_->Init();
 
-	enemy_ = new Enemy();
+	enemy_ = std::make_unique<Enemy>();
 	enemy_->Init();
 
 	// カメラをフリーモードにする
-	SceneManager::GetInstance().GetCamera().ChangeMode(Camera::MODE::FREE);
+	SceneManager::GetInstance().GetCamera()->ChangeMode(Camera::MODE::FREE);
 
 	lightPow_ = 0.001f;
 
 	seId_ = LoadSoundMem((Application::PATH_SE + "Aura.mp3").c_str());
 
-	pauseMenu_ = new PauseMenu();
-
-	isMove = false;
-
 	rePress = newPress = 0;
 
 	footSeId_ = LoadSoundMem((Application::PATH_SE + "FootStep.mp3").c_str());
-	ChangeVolumeSoundMem(200.0f, footSeId_);
+	ChangeVolumeSoundMem(INIT_VOLUME, footSeId_);
 
 	enemyFootSeId_ = LoadSoundMem((Application::PATH_SE + "EnemyFootStep.mp3").c_str());
-	ChangeVolumeSoundMem(200.0f, enemyFootSeId_);
+	ChangeVolumeSoundMem(INIT_VOLUME, enemyFootSeId_);
 
 	state_ = PauseMenu::MENU_STATE::MAIN;
 }
@@ -65,32 +76,7 @@ void GameScene::Update(void)
 	InputManager::JOYPAD_IN_STATE padState =
 		ins.GetJPadInputState(InputManager::JOYPAD_NO::PAD1);
 
-	rePress = newPress;
-	newPress = ins.IsNew(KEY_INPUT_ESCAPE);
-
-	if (ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::TOP))
-	{
-		//printfDx("Pad TOP Trigger\n");
-	}
-	if (ins.IsTrgDown(KEY_INPUT_UP))
-	{
-		//printfDx("Keyboard UP Trigger\n");
-	}
-
-	// Escapeキーでポーズ切り替え
-	if (InputManager::GetInstance().IsTrgDown(KEY_INPUT_ESCAPE) ||
-		InputManager::GetInstance().IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::OPTION))
-	{
-		pauseMenu_->Toggle();
-	}
-
-	if (pauseMenu_->IsActive())
-	{
-		pauseMenu_->Update();
-		return; // ポーズ中はゲーム更新停止
-	}
-
-	if (SceneManager::GetInstance().GetCamera().GetIsMove())
+	if (SceneManager::GetInstance().GetCamera()->GetIsMove())
 	{
 		// 足音ループ
 		if (!CheckSoundMem(footSeId_))
@@ -110,7 +96,7 @@ void GameScene::Update(void)
 	enemy_->Update();
 
 	// 距離に応じて音量を調整
-	DistanceSoundVolume(SceneManager::GetInstance().GetCamera().GetPos(), enemy_->GetPos(), enemyFootSeId_);
+	DistanceSoundVolume(SceneManager::GetInstance().GetCamera()->GetPos(), enemy_->GetPos(), enemyFootSeId_);
 
 	// 足音ループ
 	if (!CheckSoundMem(enemyFootSeId_))
@@ -120,13 +106,13 @@ void GameScene::Update(void)
 
 	// 発射キー
 	if ((CheckHitKey(KEY_INPUT_SPACE) || ins.IsPadBtnNew(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
-		&& !isMove)
+		&& !isMove_)
 	{
-		auto cameraPos = SceneManager::GetInstance().GetCamera().GetPos();
-		auto cameraAngle = SceneManager::GetInstance().GetCamera().GetAngle();
+		auto cameraPos = SceneManager::GetInstance().GetCamera()->GetPos();
+		auto cameraAngle = SceneManager::GetInstance().GetCamera()->GetAngle();
 
 		isCollision_ = false;
-		isShooting = true;
+		isShooting_ = true;
 		startPos_ = cameraPos;
 
 		MATRIX mat = MGetIdent();
@@ -139,13 +125,13 @@ void GameScene::Update(void)
 		circlePos_ = VAdd(cameraPos, moveDir_);
 
 		pow_ = 0.0f;
-		powdddd_ = 20.0f;  // 移動速度
+		moveSpeed_ = 20.0f;  // 移動速度
 		
 	}
 
 	lightPow_ -= 0.001f * SceneManager::GetInstance().GetDeltaTime();
 
-	if (isMove)
+	if (isMove_)
 	{
 		auto& camera = SceneManager::GetInstance().GetCamera();
 
@@ -153,7 +139,7 @@ void GameScene::Update(void)
 		float dist = VSize(VSub(circlePos_, startPos_));
 
 		// FarClipを距離に応じて設定（最小値を確保）
-		camera.SetFarClip(dist);
+		camera->SetFarClip(dist);
 	}
 
 	Collision();
@@ -164,7 +150,7 @@ void GameScene::Draw(void)
 {
 	stage_->Draw();
 
-	if(isMove)
+	if(isMove_)
 	{
 		// ライトを一時的に無効化
 		SetUseLighting(FALSE);
@@ -173,7 +159,7 @@ void GameScene::Draw(void)
 		// ライトを元に戻す
 		SetUseLighting(TRUE);
 	}
-	auto cameraPos = SceneManager::GetInstance().GetCamera().GetPos();
+	auto cameraPos = SceneManager::GetInstance().GetCamera()->GetPos();
 #ifdef _DEBUG
 	DrawFormatString(
 		0, 40, 0xFFFFFF, "球座標：(%.2f, %.2f, %.2f)",
@@ -197,14 +183,6 @@ void GameScene::Draw(void)
 
 void GameScene::Release(void)
 {
-	stage_->Release();
-	delete stage_;
-	stage_ = nullptr;
-
-	enemy_->Release();
-	delete enemy_;
-	enemy_ = nullptr;
-
 	StopSoundMem(seId_);
 	DeleteSoundMem(seId_);
 
@@ -220,11 +198,11 @@ bool GameScene::CollisionCamera(void)
 	auto& camera = SceneManager::GetInstance().GetCamera();
 
 	// Camera の次の座標を取得
-	VECTOR nextPos = camera.Move();
+	VECTOR nextPos = camera->Move();
 
 	// 衝突判定
 	int stageModelId = stage_->GetGoalModelId();
-	auto info = MV1CollCheck_Sphere(stageModelId, -1, nextPos, camera.CAMERA_RADIUS);
+	auto info = MV1CollCheck_Sphere(stageModelId, -1, nextPos, camera->CAMERA_RADIUS);
 	if (info.HitNum != 0)
 	{
 		// 衝突なし → 座標を確定
@@ -233,12 +211,12 @@ bool GameScene::CollisionCamera(void)
 	}
 
 	stageModelId = stage_->GetModelId();
-	info = MV1CollCheck_Sphere(stageModelId, -1, nextPos, camera.CAMERA_RADIUS);
+	info = MV1CollCheck_Sphere(stageModelId, -1, nextPos, camera->CAMERA_RADIUS);
 
 	if (info.HitNum == 0)
 	{
 		// 衝突なし → 座標を確定
-		camera.ApplyMove(nextPos);
+		camera->ApplyMove(nextPos);
 		return true;
 	}
 	else
@@ -278,8 +256,6 @@ bool GameScene::StageCollision(void)
 
 	if (info.HitNum > 0)
 	{
-		//shot->Blast();
-		int a = 0;
 		// 当たり判定結果ポリゴン配列の後始末をする
 		MV1CollResultPolyDimTerminate(info);
 		return true;
@@ -290,7 +266,7 @@ bool GameScene::StageCollision(void)
 
 bool GameScene::EnemyCollision(void)
 {
-	auto cPos = SceneManager::GetInstance().GetCamera().GetPos();
+	auto cPos = SceneManager::GetInstance().GetCamera()->GetPos();
 	cPos.y -= 300.0f;
 
 	if (AsoUtility::IsHitSpheres(cPos, 100.0f, enemy_->GetPos(), 100.0f))
@@ -311,19 +287,17 @@ void GameScene::CircleCollisionSet(void)
 	SceneManager::GetInstance().GetLight().IsPointLightPow(circlePos_);
 	enemy_->SetTargetPos(circlePos_);
 	isCollision_ = true;
-	SceneManager::GetInstance().GetCamera().SetFarClip(1800.0f);
-	isMove = false;
+	SceneManager::GetInstance().GetCamera()->SetFarClip(1800.0f);
+	isMove_ = false;
 
 	// 距離に応じた音量調整
-	DistanceSoundVolume(SceneManager::GetInstance().GetCamera().GetPos(), circlePos_, seId_);
+	DistanceSoundVolume(SceneManager::GetInstance().GetCamera()->GetPos(), circlePos_, seId_);
 	PlaySoundMem(seId_, DX_PLAYTYPE_BACK);
 }
 
 void GameScene::DistanceSoundVolume(const VECTOR& soundPos, const VECTOR& soundPos2, int soundId)
 {
 	// 距離に応じた音量調整
-	VECTOR pos1 = soundPos;
-	VECTOR pos2 = soundPos2;
 	float distance = VSize(VSub(soundPos, soundPos2));
 
 	const float MAX_DISTANCE = 2000.0f; // 聞こえる最大距離
@@ -339,17 +313,17 @@ void GameScene::DistanceSoundVolume(const VECTOR& soundPos, const VECTOR& soundP
 
 void GameScene::CircleMove(void)
 {
-	circlePos_ = VAdd(circlePos_, VScale(moveDir_, powdddd_ * SceneManager::GetInstance().GetDeltaTime()));
+	circlePos_ = VAdd(circlePos_, VScale(moveDir_, moveSpeed_ * SceneManager::GetInstance().GetDeltaTime()));
 
-	circlePos_.x += movePow.x * SceneManager::GetInstance().GetDeltaTime();
+	circlePos_.x += movePow_.x * SceneManager::GetInstance().GetDeltaTime();
 	pow_ -= GRAVITY * SceneManager::GetInstance().GetDeltaTime();
 
 	circlePos_.y += pow_ * SceneManager::GetInstance().GetDeltaTime();
 
-	isMove = true;
+	isMove_ = true;
 
 	if (circlePos_.y < 0)
 	{
-		isMove = false;
+		isMove_ = false;
 	}
 }

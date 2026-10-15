@@ -30,11 +30,6 @@ public:
 		MAX,
 	};
 
-	enum class MOVE_TYPE
-	{
-
-	};
-
 	enum class MOVE_SPOT
 	{
 		SPOT1,
@@ -62,24 +57,11 @@ public:
 	void StartLight(const VECTOR& pos);
 
 private:
-
-	static constexpr float RADIUS_MAX_SIZE = 2000.0f;
-	static constexpr float RADIUS_SIZE = 400.0f;
-	static constexpr float RADIUS_SPEED = 400.0f;
-
 	std::unique_ptr<ModelMaterial> vertexMaterial_;
 	std::unique_ptr<ModelRenderer> vertexRenderer_;
 
-	static constexpr VECTOR SPOT1_POS = { -60.0f, 300.0f, 4775.0f };
-	static constexpr VECTOR SPOT2_POS = { 0.0f, 300.0f, 0.0f };
-	static constexpr VECTOR SPOT3_POS = { 3060.0f, 300.0f, 4970.0f };
-
-	static constexpr float SPEED = 5.0f;
-
-	static constexpr float STOP_DISTANCE = 2.0f;
-
 	// アニメーションコントローラ
-	AnimationController* animationController_;
+	std::unique_ptr<AnimationController> animationController_;
 
 	// モデルのハンドルID
 	int modelId_;
@@ -100,9 +82,9 @@ private:
 
 	bool isMoveSpot_;
 
-	bool isCollision_ = false;
+	bool isCollision_;
 
-	float time_ = 0.0f;
+	float time_;
 
 	VECTOR lightPos_;
 	float lightRadius_;
@@ -110,5 +92,5 @@ private:
 	bool isExpand_;
 
 	void Move();
-};
 
+};

@@ -3,8 +3,6 @@
 #include "AnimationController.h"
 #include "../../Manager/SceneManager.h"
 
-
-
 AnimationController::AnimationController(int modelId)
 {
 	modelId_ = modelId;
@@ -13,6 +11,7 @@ AnimationController::AnimationController(int modelId)
 
 AnimationController::~AnimationController(void)
 {
+	Release();
 }
 
 
@@ -28,7 +27,6 @@ void AnimationController::Add(int type, float speed, const std::string path)
 
 void AnimationController::AddInFbx(int type, float speed, int animIndex)
 {
-
 	Animation animation;
 	animation.animIndex = animIndex;
 

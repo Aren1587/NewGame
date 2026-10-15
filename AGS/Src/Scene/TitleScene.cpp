@@ -21,15 +21,7 @@ void TitleScene::Init(void)
 {
 	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "ppap.png").c_str());
 
-	pauseMenu_ = new PauseMenu();
-
 	state_ = PauseMenu::MENU_STATE::CONFIRM;
-
-	pauseMenu_ = new PauseMenu();
-	//pauseMenu_->SetActive(true);                // •\Ž¦ON
-	pauseMenu_->SetState(PauseMenu::MENU_STATE::CONFIRM);
-	pauseMenu_->SetSelectedIndex(1);            // u‚¢‚¢‚¦v
-	pauseMenu_->ResetInput();                   // isT = true ‘Š“–
 }
 
 void TitleScene::Update(void)
@@ -71,6 +63,4 @@ void TitleScene::Draw(void)
 void TitleScene::Release(void)
 {
 	DeleteGraph(imgTitle_);
-
-	delete pauseMenu_;
 }

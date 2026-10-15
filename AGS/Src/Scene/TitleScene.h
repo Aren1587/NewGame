@@ -1,12 +1,12 @@
 #pragma once
+
 #include "SceneBase.h"
+
 class SceneManager;
 
 class TitleScene : public SceneBase
 {
-
 public:
-
 	// コンストラクタ
 	TitleScene(void);
 

@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include <DxLib.h>
+#include <memory>
 #include "../Application.h"
 #include "SceneBase.h"
 
@@ -24,38 +25,33 @@ public:
 	bool CollisionCamera(void);
 
 private:
-	constexpr static float GRAVITY = 0.08f;
-	constexpr static float CIRCLE_RADIUS = 80.0f;
-
 	// ステージインスタンス
-	Stage* stage_; 
+	std::unique_ptr<Stage> stage_;
 
-	Enemy* enemy_;
+	std::unique_ptr<Enemy> enemy_;
 
-	VECTOR circlePos_ = { 0,0,0 };
-	float pow_ = 20.0f;
-	float powdddd_ = 20.0f;
+	VECTOR circlePos_;
+	float pow_;
+	float moveSpeed_;
 
-	float lightPow_ = 0.0f;
+	float lightPow_;
 
-	bool isCollision_ = false;
+	bool isCollision_;
 
 	// 移動方向
 	VECTOR moveDir_;
 
-	VECTOR movePow;
+	VECTOR movePow_;
 
-	bool isShooting = false;
+	bool isShooting_;
 
 	int seId_;
 	int footSeId_;
 	int enemyFootSeId_;
 
-	VECTOR startPos_;  // 発射開始位置
-	float maxDistance = 1000.0f;  // これ以上飛んだら停止
-	bool isMove;
-
-	bool isEnemyPlayerCollision = false;
+	VECTOR startPos_;	// 発射開始位置
+	float maxDistance_;  // これ以上飛んだら停止
+	bool isMove_;
 
 	// 当たり判定
 	void Collision(void);
@@ -69,11 +65,4 @@ private:
 	void CircleMove(void);
 	
 	void DistanceSoundVolume(const VECTOR& soundPos, const VECTOR& soundPos2, int soundId);
-
-	// 追加するメンバ変数（クラス内）
-	VECTOR vel = VGet(0.0f, 0.0f, 0.0f); // 初期速度
-	float gravity = -0.5f;             // 重力（Y方向下向き）
-	float bounce = 0.6f;               // 反発係数（0〜1）小さいほどすぐ止まる
-	float friction = 0.98f;            // 空気抵抗 or 摩擦（1.0＝減速なし）
-
 };

@@ -48,8 +48,6 @@ public:
 
 private:
 
-	int w, h;
-
 	// 静的インスタンス
 	static Application* instance_;
 

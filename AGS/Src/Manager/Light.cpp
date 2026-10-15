@@ -1,28 +1,37 @@
 #include "SceneManager.h"
 #include "Light.h"
 
+namespace
+{
+	constexpr float MIN_LIGHT_POW = 0.01f;
+	constexpr float INIT_LIGHT_POW = 0.0001f;
+	constexpr float INIT_MINUS_LIGHT = 0.00004f;
+
+	constexpr VECTOR INIT_POINT_LIGHT_POS = { 0.0f, 40.0f, 180.0f };
+}
+
 Light::Light()
+	:
+	lights_(),
+	pointLightPos_({}),
+	minusLight(INIT_MINUS_LIGHT),
+	lightPow_(INIT_LIGHT_POW)
 {
 }
 
 Light::~Light()
 {
+	DeleteLight();
 }
 
 void Light::Init()
 {
-	lightPow_ = 0.001f;
 }
 
 void Light::InitPointLight()
 {
-	int lightID = -1;
+	pointLightPos_ = INIT_POINT_LIGHT_POS;
 
-	pointLightPos_ = { 0.0f, 40.0f, 180.0f };
-	/*ChangeLightTypePoint(
-		pointLightPos_, 400.0f, 0.000f, 0.001f, 0.000f);*/
-
-	lightID = ChangeLightTypePoint(pointLightPos_, 400.0f, 0.000f, 0.001f, 0.000f);
 	SetLightEnable(true);
 }
 
@@ -118,8 +127,15 @@ void Light::CreateSetLight()
 	//SetLightAmbientHandle(0, GetColorF(0.2f, 0.2f, 0.2f));
 }
 
-void Light::IsPointLightPow(VECTOR pos)
+void Light::IsPointLightPow(const VECTOR& pos)
 {
+	if (LIGHT_LENGTH <= 1)
+	{
+		lights_[0].lightPow = 0.0000001f;
+		lights_[0].pos = pos;
+		return;
+	}
+
 	int answer = 0;
 
 	auto max = lights_[0].lightPow;

@@ -8,6 +8,15 @@
 #include "Light.h"
 #include "Camera.h"
 
+namespace
+{
+	// 重力
+	static constexpr float GRAVITY = 9.81f;
+
+	// 配列サイズ
+	static constexpr int LIGHT_LENGTH = 1;
+}
+
 SceneManager* SceneManager::instance_ = nullptr;
 
 void SceneManager::CreateInstance()
@@ -39,7 +48,14 @@ void SceneManager::Init(void)
 	fader_ = new Fader();
 	fader_->Init();
 
-	camera_ = new Camera();
+	pauseMenu_ = std::make_unique<PauseMenu>();
+
+	//pauseMenu_->SetActive(true);				// 表示ON
+	pauseMenu_->SetState(PauseMenu::MENU_STATE::CONFIRM);
+	pauseMenu_->SetSelectedIndex(1);			// 「いいえ」
+	pauseMenu_->ResetInput();                   // isT = true 相当
+
+	camera_ = std::make_unique<Camera>();
 	camera_->Init();
 
 	isSceneChanging_ = false;
@@ -50,7 +66,7 @@ void SceneManager::Init(void)
 	// 初期シーンの設定
 	DoChangeScene(SCENE_ID::TITLE);
 
-	light_ = new Light();
+	light_ = std::make_unique<Light>();
 	light_->Init();
 	light_->CreateLight();
 
@@ -122,6 +138,28 @@ void SceneManager::Update(void)
 		rePress = newPress;
 		newPress = CheckHitKey(KEY_INPUT_ESCAPE);
 
+		// Escapeキーでポーズ切り替え
+		if ((rePress == 0 && newPress == 1))
+		{
+			switch (state_)
+			{
+			case PauseMenu::MENU_STATE::MAIN:
+				pauseMenu_->Toggle();
+				break;
+			case PauseMenu::MENU_STATE::CONFIRM:
+				pauseMenu_->GameExitConfirm();
+				break;
+			default:
+				break;
+			}
+		}
+
+		if (pauseMenu_->IsActive())
+		{
+			pauseMenu_->Update();
+			return; // ポーズ中はゲーム更新停止
+		}
+
 		// 各シーンの更新処理
 		scene_->UpdateBase();
 		
@@ -166,7 +204,6 @@ void SceneManager::Destroy(void)
 
 	// シーンの解放
 	scene_->Release();
-	delete scene_;
 
 	// フェード機能の解放
 	delete fader_;
@@ -174,7 +211,6 @@ void SceneManager::Destroy(void)
 	//delete pauseMenu_;
 
 	light_->DeleteLight();
-	delete light_;
 
 	// インスタンスのメモリ解放
 	delete instance_;
@@ -213,7 +249,8 @@ void SceneManager::SetCameraNear(float ne)
 }
 
 SceneManager::SceneManager(void)
-	:sceneId_(SCENE_ID::NONE),
+	:
+	sceneId_(SCENE_ID::NONE),
 	waitSceneId_(SCENE_ID::NONE),
 	scene_(nullptr),
 	fader_(nullptr),
@@ -230,41 +267,39 @@ void SceneManager::ResetDeltaTime(void)
 
 void SceneManager::DoChangeScene(SCENE_ID sceneId)
 {
-
 	// シーンを変更する
 	sceneId_ = sceneId;
 
 	// 現在のシーンを解放
 	if (scene_ != nullptr)
 	{
-		scene_->Release();
-		delete scene_;
+		scene_.reset();
 	}
 
 	switch (sceneId_)
 	{
 	case SCENE_ID::TITLE:
-		scene_ = new TitleScene();
+		scene_ = std::make_unique<TitleScene>();
 		break;
 	case SCENE_ID::GAME:
-		scene_ = new GameScene();
+		scene_ = std::make_unique<GameScene>();
 		break;
 	case SCENE_ID::GAMEOVER:
-		scene_ = new GameOver();
+		scene_ = std::make_unique<GameOver>();
 		break;
 	case SCENE_ID::CLEAR:
-		scene_ = new GameClear();
+		scene_ = std::make_unique<GameClear>();
 		break;
 	}
 
 	// 各シーンの初期化
 	scene_->Init();
+	scene_->InitPauseMenu();
 	camera_->Init();
 
 	ResetDeltaTime();
 
 	waitSceneId_ = SCENE_ID::NONE;
-
 }
 
 void SceneManager::Fade(void)

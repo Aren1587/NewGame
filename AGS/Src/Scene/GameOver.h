@@ -1,11 +1,12 @@
 #pragma once
+
 #include "SceneBase.h"
+
 class SceneManager;
 
 class GameOver : public SceneBase
 {
 public:
-
 	// コンストラクタ
 	GameOver(void);
 

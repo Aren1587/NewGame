@@ -1,12 +1,12 @@
 #pragma once
+
 #include <DxLib.h>
 #include <iostream>
 #include <algorithm>
+
 class Quaternion
 {
-
 public:
-	
 	static constexpr float kEpsilonNormalSqrt = 1e-15F;
 
 	double w;
@@ -88,7 +88,6 @@ public:
 	void ToAngleAxis(float* angle, VECTOR* axis);
 
 private:
-
 	// 基本ベクトルを取得
 	VECTOR GetDir(VECTOR dir) const;
 

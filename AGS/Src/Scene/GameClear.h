@@ -1,12 +1,12 @@
 #pragma once
+
 #include "SceneBase.h"
+
 class SceneManager;
 
 class GameClear : public SceneBase
 {
-
 public:
-
 	// コンストラクタ
 	GameClear(void);
 

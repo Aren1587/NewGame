@@ -7,22 +7,47 @@
 #include "../Renderer/ModelMaterial.h"
 #include "../Renderer/ModelRenderer.h"
 
+namespace
+{
+	constexpr float RADIUS_MAX_SIZE = 2000.0f;
+	constexpr float RADIUS_SIZE = 400.0f;
+	constexpr float RADIUS_SPEED = 400.0f;
+
+	constexpr VECTOR SPOT1_POS = { -60.0f, 300.0f, 4775.0f };
+	constexpr VECTOR SPOT2_POS = { 0.0f, 300.0f, 0.0f };
+	constexpr VECTOR SPOT3_POS = { 3060.0f, 300.0f, 4970.0f };
+
+	constexpr float MOVE_SPEED = 5.0f;
+
+	constexpr float STOP_DISTANCE = 2.0f;
+
+	constexpr float TIME_OFFSET = 0.05f;
+}
 
 Enemy::Enemy(void)
 	:
+	vertexMaterial_(nullptr),
+	vertexRenderer_(nullptr),
 	animationController_(nullptr),
-	modelId_(-1),
-	angles_(AsoUtility::VECTOR_ZERO),
-	moveDir_(AsoUtility::VECTOR_ZERO),
 	pos_(AsoUtility::VECTOR_ZERO),
+	angles_(AsoUtility::VECTOR_ZERO),
+	modelId_(-1),
 	scales_(AsoUtility::VECTOR_ONE),
+	moveDir_(AsoUtility::VECTOR_ZERO),
 	targetPos_(AsoUtility::VECTOR_ZERO),
-	isMoveSpot_(false)
+	isMoveSpot_(false),
+	isCollision_(false),
+	time_(0.0f),
+	lightPos_(AsoUtility::VECTOR_ZERO),
+	lightRadius_(0.0f),
+	notLightRadius_(0.0f),
+	isExpand_(false)
 {
 }
 
 Enemy::~Enemy(void)
 {
+	Release();
 }
 
 void Enemy::Init(void)
@@ -33,7 +58,7 @@ void Enemy::Init(void)
 	MV1SetScale(modelId_, { 1.0f, 1.0f, 1.0f });
 
 	// アニメーションの設定
-	animationController_ = new AnimationController(modelId_);
+	animationController_ = std::make_unique<AnimationController>(modelId_);
 	for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++)
 	{
 		if (i == static_cast<int>(ANIM_TYPE::WAVE)) 
@@ -44,16 +69,11 @@ void Enemy::Init(void)
 		animationController_->AddInFbx(i, 30.0f, i);
 	}
 	
-	pos_ = { 0.0f, 0.0f, 0.0f };
+	pos_ = AsoUtility::VECTOR_ZERO;
 	MV1SetPosition(modelId_, pos_);
-	MV1SetRotationXYZ(modelId_, { 0.0f, 0.0f, 0.0f });
+	MV1SetRotationXYZ(modelId_, AsoUtility::VECTOR_ZERO);
 
 	// シェーダ
-	lightPos_ = VGet(0, 0, 0);
-	lightRadius_ = 0.0f;
-	notLightRadius_ = 0.0f;
-	isExpand_ = false;
-
 	vertexMaterial_ = std::make_unique<ModelMaterial>(
 		"EnemyVS.cso", 1,
 		"EnemyPS.cso", 2);
@@ -69,7 +89,7 @@ void Enemy::Init(void)
 
 void Enemy::Update(void)
 {
-	time_ += SceneManager::GetInstance().GetDeltaTime() * 0.05f;
+	time_ += SceneManager::GetInstance().GetDeltaTime() * TIME_OFFSET;
 
 	Move();
 	// アニメーション再生
@@ -77,7 +97,7 @@ void Enemy::Update(void)
 
 	if (isExpand_)
 	{
-		lightRadius_ += RADIUS_SPEED * SceneManager::GetInstance().GetDeltaTime() * 0.05f;
+		lightRadius_ += RADIUS_SPEED * SceneManager::GetInstance().GetDeltaTime() * TIME_OFFSET;
 
 		if (lightRadius_ > RADIUS_MAX_SIZE)
 		{
@@ -88,7 +108,7 @@ void Enemy::Update(void)
 
 	if (lightRadius_ >= RADIUS_SIZE)
 	{
-		notLightRadius_ += RADIUS_SPEED * SceneManager::GetInstance().GetDeltaTime() * 0.05f;
+		notLightRadius_ += RADIUS_SPEED * SceneManager::GetInstance().GetDeltaTime() * TIME_OFFSET;
 	}
 
 	vertexMaterial_->SetConstBufPS(0, { lightPos_.x, lightPos_.y, lightPos_.z, lightRadius_ });
@@ -106,9 +126,6 @@ void Enemy::Release(void)
 {
 	// ロードされた３Ｄモデルをメモリから解放
 	MV1DeleteModel(modelId_);
-
-	animationController_->Release();
-	delete animationController_;
 }
 
 VECTOR Enemy::GetHeadPos(void)
@@ -132,7 +149,7 @@ void Enemy::Move()
 
 		if (dist > STOP_DISTANCE)
 		{
-			VECTOR moveVec = VScale(VNorm(diff), SPEED * dt);
+			VECTOR moveVec = VScale(VNorm(diff), MOVE_SPEED * dt);
 			pos_ = VAdd(pos_, moveVec);
 		}
 		else

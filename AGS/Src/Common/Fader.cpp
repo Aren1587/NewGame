@@ -33,7 +33,6 @@ void Fader::Init(void)
 
 void Fader::Update(void)
 {
-
 	if (isEnd_)
 	{
 		return;
@@ -78,12 +77,10 @@ void Fader::Update(void)
 	default:
 		return;
 	}
-
 }
 
 void Fader::Draw(void)
 {
-
 	switch (state_)
 	{
 	case STATE::NONE:
@@ -99,5 +96,4 @@ void Fader::Draw(void)
 		SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
 		break;
 	}
-
 }

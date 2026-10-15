@@ -18,12 +18,8 @@ public:
         EXIT            // 終了
     };
 
-    PauseMenu()
-        : isActive_(false), selectedIndex_(0)
-    {
-        items_ = { "再開", "タイトルに戻る", "終了" };
-        isTrigger_ = false;
-    }
+    PauseMenu();
+	~PauseMenu();
 
     void Toggle();
     void GameExitConfirm() { state_ = MENU_STATE::CONFIRM; isConfirm_ = true; isActive_ = !isActive_; }
@@ -44,12 +40,14 @@ public:
     void ResetInput() { isTrigger_ = true; }
 
 private:
-
-    MENU_STATE state_ = MENU_STATE::MAIN;
-    bool isConfirm_ = false;
+    MENU_STATE state_;
+    bool isConfirm_;
 
     bool isActive_;
     int selectedIndex_;
     std::vector<std::string> items_;
     bool isTrigger_;
+
+    void StateMainUpdate();
+    void StateConfirmUpdate();
 };

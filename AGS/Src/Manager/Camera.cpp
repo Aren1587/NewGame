@@ -5,14 +5,42 @@
 #include "SceneManager.h"
 #include "Camera.h"
 
+namespace
+{
+	// カメラスピード（移動）
+	constexpr float SPEED_MOVE = 10.0f;
+
+	// カメラスピード(度)
+	constexpr float SPEED_ANGLE_DEG = 1.0f;
+
+	// カメラの初期位置
+	constexpr VECTOR DEFAULT_POS = { 0.0f, 300.0f, -500.0f };
+
+	// カメラの初期角度
+	constexpr VECTOR DEFAULT_ANGLES = { 15.0f * DX_PI_F / 180.0f, 0.0f, 0.0f };
+
+	// カメラクリップ：NEAR
+	constexpr float CAMERA_NEAR = 3.0f;
+
+	// カメラクリップ：FAR
+	constexpr float CAMERA_FAR = 15000.0f;
+}
+
 Camera::Camera(void)
+	:
+	mode_(),
+	pos_(DEFAULT_POS),
+	angles_(DEFAULT_ANGLES),
+	moveDir_({}),
+	farClip_(CAMERA_FAR),
+	isMove_(false),
+	isCollision_(false)
 {
 }
 
 Camera::~Camera(void)
 {
 }
-
 
 // 初期化
 void Camera::Init(void)
@@ -21,7 +49,6 @@ void Camera::Init(void)
 	angles_ = DEFAULT_ANGLES;
 
 	farClip_ = CAMERA_FAR;
-	//farClip_ = 100.0f;
 
 	isMove_ = false;
 }
@@ -66,7 +93,6 @@ void Camera::DrawDebug(void)
 		angles_.x * 180.0f / DX_PI_F,
 		angles_.y * 180.0f / DX_PI_F,
 		angles_.z * 180.0f / DX_PI_F);
-
 }
 
 // 解放

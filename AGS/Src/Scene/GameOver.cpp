@@ -5,6 +5,8 @@
 #include "GameOver.h"
 
 GameOver::GameOver(void)
+	:
+	imgTitle_(-1)
 {
 }
 
@@ -14,10 +16,7 @@ GameOver::~GameOver(void)
 
 void GameOver::Init(void)
 {
-	pauseMenu_ = new PauseMenu();
-
 	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Over.png").c_str());
-
 }
 
 void GameOver::Update(void)

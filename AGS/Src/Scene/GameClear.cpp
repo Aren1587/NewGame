@@ -4,6 +4,8 @@
 #include "../Manager/InputManager.h"
 
 GameClear::GameClear(void)
+	:
+	imgTitle_(-1)
 {
 }
 
@@ -13,8 +15,6 @@ GameClear::~GameClear(void)
 
 void GameClear::Init(void)
 {
-	pauseMenu_ = new PauseMenu();
-
 	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "Clear.png").c_str());
 }
 
