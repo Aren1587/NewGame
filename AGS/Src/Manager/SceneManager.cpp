@@ -138,21 +138,21 @@ void SceneManager::Update(void)
 		rePress = newPress;
 		newPress = CheckHitKey(KEY_INPUT_ESCAPE);
 
-		// Escapeキーでポーズ切り替え
-		if ((rePress == 0 && newPress == 1))
-		{
-			switch (state_)
-			{
-			case PauseMenu::MENU_STATE::MAIN:
-				pauseMenu_->Toggle();
-				break;
-			case PauseMenu::MENU_STATE::CONFIRM:
-				pauseMenu_->GameExitConfirm();
-				break;
-			default:
-				break;
-			}
-		}
+		//// Escapeキーでポーズ切り替え
+		//if ((rePress == 0 && newPress == 1))
+		//{
+		//	switch (state_)
+		//	{
+		//	case PauseMenu::MENU_STATE::MAIN:
+		//		pauseMenu_->Toggle();
+		//		break;
+		//	case PauseMenu::MENU_STATE::CONFIRM:
+		//		pauseMenu_->GameExitConfirm();
+		//		break;
+		//	default:
+		//		break;
+		//	}
+		//}
 
 		if (pauseMenu_->IsActive())
 		{
