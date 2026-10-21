@@ -50,7 +50,6 @@ private:
 	int enemyFootSeId_;
 
 	VECTOR startPos_;	// 発射開始位置
-	float maxDistance_;  // これ以上飛んだら停止
 	bool isMove_;
 
 	// 当たり判定

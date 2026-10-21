@@ -13,8 +13,12 @@ namespace
 {
 	constexpr int INIT_VOLUME = 200;
 
-	static float GRAVITY = 0.08f;
-	static float CIRCLE_RADIUS = 80.0f;
+	constexpr float GRAVITY = 0.08f;
+	constexpr float CIRCLE_RADIUS = 80.0f;
+
+	constexpr float MAX_DISTANCE = 1000.0f;
+
+	constexpr float INIT_POW = 20.0f;
 }
 
 GameScene::GameScene(void)
@@ -22,7 +26,7 @@ GameScene::GameScene(void)
 	stage_(nullptr),
 	enemy_(nullptr),
 	circlePos_({}),
-	pow_(20.0f),
+	pow_(INIT_POW),
 	moveSpeed_(20.0f),
 	lightPow_(0.0f),
 	isCollision_(false),
@@ -33,7 +37,6 @@ GameScene::GameScene(void)
 	footSeId_(-1),
 	enemyFootSeId_(-1),
 	startPos_({}),
-	maxDistance_(1000.0f),
 	isMove_(false)
 {
 }
