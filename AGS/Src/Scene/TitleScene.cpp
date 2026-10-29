@@ -19,7 +19,7 @@ TitleScene::~TitleScene(void)
 
 void TitleScene::Init(void)
 {
-	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "ppap.png").c_str());
+	imgTitle_ = LoadGraph((Application::PATH_IMAGE + "TitleImage.png").c_str());
 
 	state_ = PauseMenu::MENU_STATE::CONFIRM;
 }

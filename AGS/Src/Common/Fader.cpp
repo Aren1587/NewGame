@@ -3,6 +3,12 @@
 #include "../Manager/SceneManager.h"
 #include "Fader.h"
 
+namespace
+{
+	// フェードが進む速さ
+	constexpr float SPEED_ALPHA = 5.0f;
+}
+
 Fader::STATE Fader::GetState(void) const
 {
 	return state_;

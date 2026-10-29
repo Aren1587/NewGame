@@ -26,22 +26,25 @@ namespace
 
 Enemy::Enemy(void)
 	:
-	vertexMaterial_(nullptr),
-	vertexRenderer_(nullptr),
+	material4_(nullptr),
+	renderer4_(nullptr),
+	material8_(nullptr),
+	renderer8_(nullptr),
 	animationController_(nullptr),
+	modelId_(-1),
 	pos_(AsoUtility::VECTOR_ZERO),
 	angles_(AsoUtility::VECTOR_ZERO),
-	modelId_(-1),
 	scales_(AsoUtility::VECTOR_ONE),
 	moveDir_(AsoUtility::VECTOR_ZERO),
 	targetPos_(AsoUtility::VECTOR_ZERO),
 	isMoveSpot_(false),
 	isCollision_(false),
-	time_(0.0f),
 	lightPos_(AsoUtility::VECTOR_ZERO),
 	lightRadius_(0.0f),
 	notLightRadius_(0.0f),
-	isExpand_(false)
+	isExpand_(false),
+	hasMesh4_(false),
+	hasMesh8_(false)
 {
 }
 
@@ -55,49 +58,80 @@ void Enemy::Init(void)
 	modelId_ = MV1LoadModel(
 		(Application::PATH_MODEL + "Enemy/BlueDemon.mv1").c_str());
 
-	MV1SetScale(modelId_, { 1.0f, 1.0f, 1.0f });
+	MV1SetScale(modelId_, AsoUtility::VECTOR_ONE);
 
 	// アニメーションの設定
 	animationController_ = std::make_unique<AnimationController>(modelId_);
 	for (int i = 0; i < static_cast<int>(ANIM_TYPE::MAX); i++)
 	{
-		if (i == static_cast<int>(ANIM_TYPE::WAVE)) 
+		if (i == static_cast<int>(ANIM_TYPE::WAVE))
 		{
 			animationController_->AddInFbx(i, 50.0f, i);
 			continue;
 		}
 		animationController_->AddInFbx(i, 30.0f, i);
 	}
-	
+
 	pos_ = AsoUtility::VECTOR_ZERO;
 	MV1SetPosition(modelId_, pos_);
 	MV1SetRotationXYZ(modelId_, AsoUtility::VECTOR_ZERO);
 
-	// シェーダ
-	vertexMaterial_ = std::make_unique<ModelMaterial>(
-		"EnemyVS.cso", 1,
+	// ---- メッシュごとの頂点タイプを調べる ----
+	// (メッシュ番号 = トライアングルリスト番号 として扱う)
+	int meshNum = MV1GetMeshNum(modelId_);
+	int listNum = MV1GetTriangleListNum(modelId_);
+#ifdef _DEBUG
+	if (meshNum != listNum)
+	{
+		OutputDebugStringA("Enemy: mesh count != triangle list count\n");
+	}
+#endif
+
+	meshUse8_.assign(meshNum, false);
+	for (int i = 0; i < meshNum && i < listNum; i++)
+	{
+		int type = MV1GetTriangleListVertexType(modelId_, i);
+		bool use8 = (type == DX_MV1_VERTEX_TYPE_8FRAME
+			|| type == DX_MV1_VERTEX_TYPE_NMAP_8FRAME);
+		meshUse8_[i] = use8;
+
+		if (use8) { hasMesh8_ = true; }
+		else { hasMesh4_ = true; }
+	}
+
+	// ---- シェーダ(4FRAME 用) ----
+	material4_ = std::make_unique<ModelMaterial>(
+		"EnemyVS4.cso", 1,
 		"EnemyPS.cso", 2);
 
-	// エネミーのサイズに合わせてライト半径の最大値を調整
-	// BlueDemonモデルは小さいので、RADIUS_MAX_SIZEをもっと小さくする
-	vertexMaterial_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, lightRadius_ });
-	vertexMaterial_->AddConstBufPS({ notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
-	vertexMaterial_->AddConstBufVS({ 1, 1, 1.0f, 0.0f });
+	material4_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, lightRadius_ });
+	material4_->AddConstBufPS({ notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
 
-	vertexRenderer_ = std::make_unique<ModelRenderer>(modelId_, *vertexMaterial_);
+	renderer4_ = std::make_unique<ModelRenderer>(modelId_, *material4_);
+
+	// ---- シェーダ(8FRAME 用) ----
+	material8_ = std::make_unique<ModelMaterial>(
+		"EnemyVS8.cso", 1,
+		"EnemyPS.cso", 2);
+
+	material8_->AddConstBufPS({ 0.0f, 0.0f, 0.0f, lightRadius_ });
+	material8_->AddConstBufPS({ notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
+
+	renderer8_ = std::make_unique<ModelRenderer>(modelId_, *material8_);
 }
 
 void Enemy::Update(void)
 {
-	time_ += SceneManager::GetInstance().GetDeltaTime() * TIME_OFFSET;
-
 	Move();
+
 	// アニメーション再生
 	animationController_->Update();
 
+	float dt = SceneManager::GetInstance().GetDeltaTime();
+
 	if (isExpand_)
 	{
-		lightRadius_ += RADIUS_SPEED * SceneManager::GetInstance().GetDeltaTime() * TIME_OFFSET;
+		lightRadius_ += RADIUS_SPEED * dt * TIME_OFFSET;
 
 		if (lightRadius_ > RADIUS_MAX_SIZE)
 		{
@@ -108,24 +142,61 @@ void Enemy::Update(void)
 
 	if (lightRadius_ >= RADIUS_SIZE)
 	{
-		notLightRadius_ += RADIUS_SPEED * SceneManager::GetInstance().GetDeltaTime() * TIME_OFFSET;
+		notLightRadius_ += RADIUS_SPEED * dt * TIME_OFFSET;
 	}
 
-	vertexMaterial_->SetConstBufPS(0, { lightPos_.x, lightPos_.y, lightPos_.z, lightRadius_ });
-	vertexMaterial_->SetConstBufPS(1, { notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
-	vertexMaterial_->SetConstBufVS(0, { 1, 1, 1.0f, time_ });
+	UpdateMaterial(*material4_);
+	UpdateMaterial(*material8_);
 }
 
 void Enemy::Draw(void)
 {
-	MV1DrawModel(modelId_);
-	//vertexRenderer_->Draw();
+	// 8FRAME 用のメッシュ
+	if (hasMesh8_)
+	{
+		SetMeshGroupVisible(true);
+		renderer8_->Draw();
+	}
+
+	// 4FRAME 用のメッシュ
+	if (hasMesh4_)
+	{
+		SetMeshGroupVisible(false);
+		renderer4_->Draw();
+	}
+
+	// 全メッシュを表示に戻す
+	int meshNum = MV1GetMeshNum(modelId_);
+	for (int i = 0; i < meshNum; i++)
+	{
+		MV1SetMeshVisible(modelId_, i, TRUE);
+	}
 }
 
 void Enemy::Release(void)
 {
 	// ロードされた３Ｄモデルをメモリから解放
-	MV1DeleteModel(modelId_);
+	if (modelId_ != -1)
+	{
+		MV1DeleteModel(modelId_);
+		modelId_ = -1;
+	}
+}
+
+void Enemy::UpdateMaterial(ModelMaterial& material)
+{
+	material.SetConstBufPS(0, { lightPos_.x, lightPos_.y, lightPos_.z, lightRadius_ });
+	material.SetConstBufPS(1, { notLightRadius_, RADIUS_MAX_SIZE, 0.0f, 0.0f });
+}
+
+void Enemy::SetMeshGroupVisible(bool use8)
+{
+	int meshNum = MV1GetMeshNum(modelId_);
+	for (int i = 0; i < meshNum; i++)
+	{
+		bool is8 = (i < static_cast<int>(meshUse8_.size())) && meshUse8_[i];
+		MV1SetMeshVisible(modelId_, i, (is8 == use8) ? TRUE : FALSE);
+	}
 }
 
 VECTOR Enemy::GetHeadPos(void)
@@ -159,7 +230,7 @@ void Enemy::Move()
 			isCollision_ = false;
 		}
 
-		if(isCollision_)
+		if (isCollision_)
 		{
 			animationController_->Play(static_cast<int>(ANIM_TYPE::RUN));
 		}

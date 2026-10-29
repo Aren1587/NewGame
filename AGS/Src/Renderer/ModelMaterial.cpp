@@ -1,6 +1,12 @@
 #include "../Application.h"
 #include "ModelMaterial.h"
 
+namespace
+{
+	// 設定できる最大のテクスチャの数
+	constexpr int MAX_TEXTURES = 4;
+}
+
 ModelMaterial::ModelMaterial(
 	std::string shaderFileNameVS, int constBufFloat4SizeVS,
 	std::string shaderFileNamePS, int constBufFloat4SizePS)

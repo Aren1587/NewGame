@@ -1,28 +1,32 @@
 #pragma once
 #include <DxLib.h>
-#include <vector>
-#include <string>
 
 class PauseMenu
 {
 public:
-    enum class MENU_STATE {
+    enum class MENU_STATE
+    {
         MAIN,       // pause 通常メニュー
         CONFIRM     // 終了確認
     };
 
     enum class MENU_ITEM
     {
-        RESUME = 0,         // 再開
+        RESUME = 0,     // 再開
         BACK_TO_TITLE,  // タイトルへ戻る
-        EXIT            // 終了
+        EXIT,           // 終了
+        MAX
     };
 
     PauseMenu();
-	~PauseMenu();
+    ~PauseMenu() = default;
 
+    // ポーズの開閉
     void Toggle();
-    void GameExitConfirm() { state_ = MENU_STATE::CONFIRM; isConfirm_ = true; isActive_ = !isActive_; }
+
+    // ウィンドウ×ボタン等から、終了確認を直接開く
+    void GameExitConfirm();
+
     bool IsActive() const { return isActive_; }
 
     // 入力処理
@@ -37,17 +41,41 @@ public:
     void SetActive(bool f) { isActive_ = f; }
     void SetState(MENU_STATE s) { state_ = s; }
     void SetSelectedIndex(int i) { selectedIndex_ = i; }
-    void ResetInput() { isTrigger_ = true; }
+
+    // スティックが倒れっぱなしの状態として扱う（開いた直後の誤爆防止用）
+    void ResetInput() { isStickHeld_ = true; }
 
 private:
-    MENU_STATE state_;
-    bool isConfirm_;
+    // 終了確認の選択肢（描画順と同じ）
+    enum class CONFIRM_ITEM
+    {
+        YES = 0,
+        NO,
+        MAX
+    };
 
+    // スティック入力のスナップショット
+    struct StickState
+    {
+        float x;
+        float z;
+        bool tilted;    // 何らかの方向に倒れているか
+    };
+
+    MENU_STATE state_;
     bool isActive_;
-    int selectedIndex_;
-    std::vector<std::string> items_;
-    bool isTrigger_;
+    bool isDirectConfirm_;  // 終了確認から直接開いたか（「いいえ」でメニュー自体を閉じる）
+    int  selectedIndex_;
+    bool isStickHeld_;      // 前フレームでスティックが倒れていたか（エッジ検出用）
+
+    void Open();
+    void Close();
 
     void StateMainUpdate();
     void StateConfirmUpdate();
+
+    void DrawMain() const;
+    void DrawConfirm() const;
+
+    StickState ReadStick() const;
 };

@@ -8,9 +8,6 @@ class PixelMaterial
 
 public:
 
-	// 設定できる最大のテクスチャの数
-	static constexpr int MAX_TEXTURES = 4;
-
 	// テクスチャアドレスタイプ
 	enum class TEXADDRESS
 	{

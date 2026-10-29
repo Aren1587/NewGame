@@ -63,11 +63,11 @@ private:
 	// ˆÚ“®•ûŒü
 	VECTOR moveDir_;
 
-	float farClip_ = 0;
+	float farClip_;
 
 	bool isMove_;
 
-	bool isCollision_ = false;
+	bool isCollision_;
 
 	// ƒJƒƒ‰ƒ‚[ƒh•Ê‚Ì§Œäˆ—
 	void SetBeforeDrawFixedPoint(void);

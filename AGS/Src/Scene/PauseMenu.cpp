@@ -1,290 +1,297 @@
 ﻿#include "PauseMenu.h"
+#include <algorithm>
+#include <string>
 #include "../Manager/InputManager.h"
 #include "../Manager/SceneManager.h"
-#include "../Utility/AsoUtility.h"
 #include "../Scene/SceneBase.h"
 #include "../Application.h"
 
-PauseMenu::PauseMenu()
-    : 
-	state_(MENU_STATE::MAIN),
-	isConfirm_(false),
-    isActive_(false), 
-    selectedIndex_(0),
-	isTrigger_(false)
+namespace
 {
-    items_ = { "再開", "タイトルに戻る", "終了" };
+    // レイアウト
+    constexpr int BACK_ALPHA = 180;
+    constexpr int TITLE_Y = 150;
+    constexpr int MAIN_LIST_Y = 300;
+    constexpr int CONFIRM_MSG_Y = 260;
+    constexpr int CONFIRM_LIST_Y = 350;
+    constexpr int LINE_HEIGHT = 50;
+
+    // 文字列
+    constexpr const char* TITLE_TEXT = "PAUSE";
+    constexpr const char* CONFIRM_MSG = "ゲームを終了しますか？";
+    constexpr const char* CURSOR_ON = "→ ";
+    constexpr const char* CURSOR_OFF = "   ";
+
+    // MENU_ITEM / CONFIRM_ITEM の並びと一致させる
+    const char* const MAIN_LABELS[] = { "再開", "タイトルに戻る", "終了" };
+    const char* const CONFIRM_LABELS[] = { "はい", "いいえ" };
+
+    constexpr int MAIN_COUNT = static_cast<int>(PauseMenu::MENU_ITEM::MAX);
+    constexpr int CONFIRM_COUNT = 2;
+
+    static_assert(sizeof(MAIN_LABELS) / sizeof(MAIN_LABELS[0]) == MAIN_COUNT,
+        "MAIN_LABELS と MENU_ITEM の数が一致していません");
+    static_assert(sizeof(CONFIRM_LABELS) / sizeof(CONFIRM_LABELS[0]) == CONFIRM_COUNT,
+        "CONFIRM_LABELS の数が不正です");
+
+    // 描画ヘルパー
+    int TextWidth(const std::string& s)
+    {
+        return GetDrawStringWidthToHandle(
+            s.c_str(), static_cast<int>(s.length()), SceneBase::fontTitle_);
+    }
+
+    // 画面中央揃えで1行描く
+    void DrawCenteredString(int y, const std::string& s, int color)
+    {
+        const int x = (Application::SCREEN_SIZE_X - TextWidth(s)) / 2;
+        DrawStringToHandle(x, y, s.c_str(), color, SceneBase::fontTitle_);
+    }
+
+    // 「リスト全体」を画面中央に置き、各項目は左揃えで縦に並べる
+    void DrawOptionList(const char* const* labels, int count, int selected, int baseY)
+    {
+        const int colorSelected = GetColor(255, 255, 0);
+        const int colorNormal = GetColor(200, 200, 200);
+
+        // 一番長い幅（カーソル込み）を基準にする
+        int maxWidth = 0;
+        for (int i = 0; i < count; i++)
+        {
+            maxWidth = (std::max)(maxWidth, TextWidth(std::string(CURSOR_ON) + labels[i]));
+        }
+        const int baseX = (Application::SCREEN_SIZE_X - maxWidth) / 2;
+
+        for (int i = 0; i < count; i++)
+        {
+            const bool isSelected = (i == selected);
+            const std::string text = std::string(isSelected ? CURSOR_ON : CURSOR_OFF) + labels[i];
+
+            DrawStringToHandle(
+                baseX,
+                baseY + i * LINE_HEIGHT,
+                text.c_str(),
+                isSelected ? colorSelected : colorNormal,
+                SceneBase::fontTitle_);
+        }
+    }
+
+    // 入力ヘルパー
+    bool IsDecidePressed()
+    {
+        auto& ins = InputManager::GetInstance();
+        return ins.IsTrgDown(KEY_INPUT_RETURN)
+            || ins.IsTrgDown(KEY_INPUT_SPACE)
+            || ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN);
+    }
 }
 
-PauseMenu::~PauseMenu()
+PauseMenu::PauseMenu()
+    : 
+    state_(MENU_STATE::MAIN),
+    isActive_(false),
+    isDirectConfirm_(false),
+    selectedIndex_(0),
+    isStickHeld_(false)
 {
-    items_.clear();
 }
 
 void PauseMenu::Toggle()
 {
     if (isActive_)
     {
-        SceneManager::GetInstance().SetIsPause(false);
+        Close();
     }
+    else
+    {
+        Open();
+    }
+}
 
-    isActive_ = !isActive_;
+void PauseMenu::GameExitConfirm()
+{
+    Open();
+    state_ = MENU_STATE::CONFIRM;
+    selectedIndex_ = static_cast<int>(CONFIRM_ITEM::NO);   // 誤爆防止で「いいえ」から
+    isDirectConfirm_ = true;
+}
+
+void PauseMenu::Open()
+{
+    isActive_ = true;
+    isDirectConfirm_ = false;
+    state_ = MENU_STATE::MAIN;
+    selectedIndex_ = 0;
+}
+
+void PauseMenu::Close()
+{
+    isActive_ = false;
+    isDirectConfirm_ = false;
+    state_ = MENU_STATE::MAIN;
+    selectedIndex_ = 0;
+    SceneManager::GetInstance().SetIsPause(false);
 }
 
 void PauseMenu::Update()
 {
-    if (!isActive_) 
+    SceneManager::GetInstance().SetIsPause(isActive_);
+    if (!isActive_)
     {
-        SceneManager::GetInstance().SetIsPause(false);
         return;
     }
 
-    SceneManager::GetInstance().SetIsPause(true);
-
-    // 通常メニュー状態
-    if (state_ == MENU_STATE::MAIN)
+    switch (state_)
     {
-        StateMainUpdate();
-    }
-    // 終了確認状態
-    else if (state_ == MENU_STATE::CONFIRM)
-    {
-        StateConfirmUpdate();
+    case MENU_STATE::MAIN:    StateMainUpdate();    break;
+    case MENU_STATE::CONFIRM: StateConfirmUpdate(); break;
     }
 }
 
-void PauseMenu::Draw()
+PauseMenu::StickState PauseMenu::ReadStick() const
 {
-    if (!isActive_) return;
+    auto& ins = InputManager::GetInstance();
 
-    // 半透明背景
-    SetDrawBlendMode(DX_BLENDMODE_ALPHA, 180);
-    DrawBox(0, 0, 1280, 720, GetColor(0, 0, 0), TRUE);
-    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+    InputManager::JOYPAD_IN_STATE padState =
+        ins.GetJPadInputState(InputManager::JOYPAD_NO::PAD1);
 
-    const char* text = "PAUSE";
+    const auto dir = ins.GetDirectionXZAKey(padState.AKeyLX, padState.AKeyLY);
 
-    int w = GetDrawStringWidthToHandle(text, (int)strlen(text), SceneBase::fontTitle_);
-    int x = (Application::SCREEN_SIZE_X - w) / 2;
-    int y = 150;
-
-    DrawStringToHandle(x, y, text, GetColor(255, 255, 255), SceneBase::fontTitle_);
-
-    // 通常メニューの描画
-    if (state_ == MENU_STATE::MAIN)
-    {
-        int baseY = 300;
-
-        // 一番長い文字幅を調べる
-        int maxWidth = 0;
-        for (int i = 0; i < items_.size(); i++)
-        {
-            std::string text = "→ " + items_[i];   // カーソル込みで計算
-            int w = GetDrawStringWidthToHandle(
-                text.c_str(),
-                (int)text.length(),
-                SceneBase::fontTitle_
-            );
-            if (w > maxWidth) maxWidth = w;
-        }
-
-        // 画面中央に「全体」を置く
-        int baseX = (Application::SCREEN_SIZE_X - maxWidth) / 2;
-
-        // 全項目を描く
-        for (int i = 0; i < items_.size(); i++)
-        {
-            const char* cursor = (i == selectedIndex_) ? "→ " : "   ";
-            std::string text = std::string(cursor) + items_[i];
-
-            int y = baseY + i * 50;
-
-            int color = (i == selectedIndex_) ?
-                GetColor(255, 255, 0) :
-                GetColor(200, 200, 200);
-
-            DrawStringToHandle(
-                baseX,
-                y,
-                text.c_str(),
-                color,
-                SceneBase::fontTitle_
-            );
-        }
-    }
-    else if (state_ == MENU_STATE::CONFIRM) // 終了確認ウィンドウの描画
-    {
-        // 確認メッセージ（中央）
-        const char* msg = "ゲームを終了しますか？";
-
-        int msgW = GetDrawStringWidthToHandle(
-            msg,
-            (int)strlen(msg),
-            SceneBase::fontTitle_
-        );
-
-        int msgX = (Application::SCREEN_SIZE_X - msgW) / 2;
-        int msgY = 260;
-
-        DrawStringToHandle(
-            msgX,
-            msgY,
-            msg,
-            GetColor(255, 255, 255),
-            SceneBase::fontTitle_
-        );
-
-        // はい、いいえの左揃え計算
-        const char* labels[2] = { "はい", "いいえ" };
-
-        int maxWidth = 0;
-        for (int i = 0; i < 2; i++)
-        {
-            std::string t = "→ ";
-            t += labels[i];
-
-            int w = GetDrawStringWidthToHandle(
-                t.c_str(),
-                (int)t.length(),
-                SceneBase::fontTitle_
-            );
-
-            if (w > maxWidth) maxWidth = w;
-        }
-
-        int baseX = (Application::SCREEN_SIZE_X - maxWidth) / 2;
-        int baseY = 350;
-
-        // 描画
-        for (int i = 0; i < 2; i++)
-        {
-            const char* cursor = (selectedIndex_ == i) ? "→ " : "   ";
-
-            std::string text = std::string(cursor) + labels[i];
-
-            int color = (selectedIndex_ == i) ?
-                GetColor(255, 255, 0) :
-                GetColor(200, 200, 200);
-
-            DrawStringToHandle(
-                baseX,
-                baseY + i * 50,
-                text.c_str(),
-                color,
-                SceneBase::fontTitle_
-            );
-        }
-    }
-
+    StickState s;
+    s.x = dir.x;
+    s.z = dir.z;
+    s.tilted = (dir.x != 0.0f) || (dir.y != 0.0f) || (dir.z != 0.0f);
+    return s;
 }
 
 void PauseMenu::StateMainUpdate()
 {
     auto& ins = InputManager::GetInstance();
+    const StickState stick = ReadStick();
 
-    // パッド取得
-    InputManager::JOYPAD_IN_STATE padState =
-        ins.GetJPadInputState(InputManager::JOYPAD_NO::PAD1);
-
-    auto trigger = ins.GetDirectionXZAKey(padState.AKeyLX, padState.AKeyLY);
-    auto f = trigger.z;
-
-    // 移動
-    if (ins.IsTrgDown(KEY_INPUT_UP) ||
-        ins.IsTrgDown(KEY_INPUT_W) ||
-        f > 0.0f)
+    // 移動量（-1: 上, +1: 下）。スティックは倒し始めの1回だけ反応させる
+    int move = 0;
+    if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsTrgDown(KEY_INPUT_W))
     {
-        if (!isTrigger_) selectedIndex_--;
-        if (selectedIndex_ < 0) selectedIndex_ = static_cast<int>(items_.size()) - 1;
+        move = -1;
     }
-    else if (ins.IsTrgDown(KEY_INPUT_DOWN) ||
-        ins.IsTrgDown(KEY_INPUT_S) ||
-        f < 0.0f)
+    else if (ins.IsTrgDown(KEY_INPUT_DOWN) || ins.IsTrgDown(KEY_INPUT_S))
     {
-        if (!isTrigger_) selectedIndex_++;
-        if (selectedIndex_ >= static_cast<int>(items_.size())) selectedIndex_ = 0;
+        move = 1;
     }
-
-    MENU_ITEM item = static_cast<MENU_ITEM>(selectedIndex_);
-
-    // 決定
-    if (ins.IsTrgDown(KEY_INPUT_RETURN) ||
-        ins.IsTrgDown(KEY_INPUT_SPACE) ||
-        ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
+    else if (!isStickHeld_)
     {
-        switch (item)
-        {
-        case MENU_ITEM::RESUME: // 再開
-            SceneManager::GetInstance().SetIsPause(false);
-            isActive_ = false;
-            break;
+        if (stick.z > 0.0f)      move = -1;
+        else if (stick.z < 0.0f) move = 1;
+    }
+    isStickHeld_ = stick.tilted;
 
-        case MENU_ITEM::BACK_TO_TITLE: // タイトル
-            SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
-            SceneManager::GetInstance().SetIsPause(false);
-            break;
-
-        case MENU_ITEM::EXIT: // 終了 → 確認状態へ
-            if (isConfirm_)
-            {
-                SceneManager::GetInstance().SetIsPause(false);
-                isActive_ = false;
-                break;
-            }
-            state_ = MENU_STATE::CONFIRM;
-            selectedIndex_ = 1; // 「いいえ」を初期位置
-            break;
-        }
+    if (move != 0)
+    {
+        selectedIndex_ = (selectedIndex_ + move + MAIN_COUNT) % MAIN_COUNT;
     }
 
-    // トリガーフラグ更新
-    isTrigger_ = (trigger.x != 0.0f) || (trigger.y != 0.0f) || (trigger.z != 0.0f);
+    if (!IsDecidePressed())
+    {
+        return;
+    }
+
+    switch (static_cast<MENU_ITEM>(selectedIndex_))
+    {
+    case MENU_ITEM::RESUME:
+        Close();
+        break;
+
+    case MENU_ITEM::BACK_TO_TITLE:
+        // シーン切替後に自身が破棄されても安全なよう、メンバ操作を先に済ませる
+        Close();
+        SceneManager::GetInstance().ChangeScene(SceneManager::SCENE_ID::TITLE);
+        break;
+
+    case MENU_ITEM::EXIT:
+        state_ = MENU_STATE::CONFIRM;
+        selectedIndex_ = static_cast<int>(CONFIRM_ITEM::NO);   // 「いいえ」を初期位置
+        break;
+
+    default:
+        break;
+    }
 }
 
 void PauseMenu::StateConfirmUpdate()
 {
     auto& ins = InputManager::GetInstance();
+    const StickState stick = ReadStick();
 
-    // パッド取得
-    InputManager::JOYPAD_IN_STATE padState =
-        ins.GetJPadInputState(InputManager::JOYPAD_NO::PAD1);
-
-    auto trigger = ins.GetDirectionXZAKey(padState.AKeyLX, padState.AKeyLY);
-    auto f = trigger.z;
-
-    // 左右移動（2択）
-    if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsTrgDown(KEY_INPUT_A) || trigger.x < 0)
+    // 選択（上 or 左 = はい, 下 or 右 = いいえ）
+    if (ins.IsTrgDown(KEY_INPUT_UP) || ins.IsTrgDown(KEY_INPUT_A))
     {
-        if (!isTrigger_) selectedIndex_ = 0; // はい
+        selectedIndex_ = static_cast<int>(CONFIRM_ITEM::YES);
     }
-    else if (ins.IsTrgDown(KEY_INPUT_DOWN) || ins.IsTrgDown(KEY_INPUT_D) || trigger.x > 0)
+    else if (ins.IsTrgDown(KEY_INPUT_DOWN) || ins.IsTrgDown(KEY_INPUT_D))
     {
-        if (!isTrigger_) selectedIndex_ = 1; // いいえ
+        selectedIndex_ = static_cast<int>(CONFIRM_ITEM::NO);
     }
-
-    // 決定
-    if (ins.IsTrgDown(KEY_INPUT_RETURN) ||
-        ins.IsTrgDown(KEY_INPUT_SPACE) ||
-        ins.IsPadBtnTrgDown(InputManager::JOYPAD_NO::PAD1, InputManager::JOYPAD_BTN::DOWN))
+    else if (!isStickHeld_)
     {
-        if (selectedIndex_ == 0)
-        {
-            // はい → 終了
-            Application::GetInstance().GameEnd();
-        }
-        else
-        {
-            // いいえ → メインメニューに戻る
-            state_ = MENU_STATE::MAIN;
-            selectedIndex_ = 0;
-            if (isConfirm_)
-            {
-                SceneManager::GetInstance().SetIsPause(false);
-                isActive_ = false;
-            }
-        }
+        if (stick.x < 0.0f || stick.z > 0.0f)      selectedIndex_ = static_cast<int>(CONFIRM_ITEM::YES);
+        else if (stick.x > 0.0f || stick.z < 0.0f) selectedIndex_ = static_cast<int>(CONFIRM_ITEM::NO);
+    }
+    isStickHeld_ = stick.tilted;
+
+    if (!IsDecidePressed())
+    {
+        return;
     }
 
-    // トリガーフラグ更新
-    isTrigger_ = (trigger.x != 0.0f) || (trigger.y != 0.0f) || (trigger.z != 0.0f);
+    if (selectedIndex_ == static_cast<int>(CONFIRM_ITEM::YES))
+    {
+        Application::GetInstance().GameEnd();
+        return;
+    }
+
+    // 「いいえ」
+    if (isDirectConfirm_)
+    {
+        // 終了確認から直接開いた場合は、ポーズごと閉じる
+        Close();
+    }
+    else
+    {
+        // メインメニューに戻る
+        state_ = MENU_STATE::MAIN;
+        selectedIndex_ = 0;
+    }
+}
+
+void PauseMenu::Draw()
+{
+    if (!isActive_)
+    {
+        return;
+    }
+
+    // 半透明背景
+    SetDrawBlendMode(DX_BLENDMODE_ALPHA, BACK_ALPHA);
+    DrawBox(0, 0, Application::SCREEN_SIZE_X, Application::SCREEN_SIZE_Y, GetColor(0, 0, 0), TRUE);
+    SetDrawBlendMode(DX_BLENDMODE_NOBLEND, 0);
+
+    DrawCenteredString(TITLE_Y, TITLE_TEXT, GetColor(255, 255, 255));
+
+    switch (state_)
+    {
+    case MENU_STATE::MAIN:    DrawMain();    break;
+    case MENU_STATE::CONFIRM: DrawConfirm(); break;
+    }
+}
+
+void PauseMenu::DrawMain() const
+{
+    DrawOptionList(MAIN_LABELS, MAIN_COUNT, selectedIndex_, MAIN_LIST_Y);
+}
+
+void PauseMenu::DrawConfirm() const
+{
+    DrawCenteredString(CONFIRM_MSG_Y, CONFIRM_MSG, GetColor(255, 255, 255));
+    DrawOptionList(CONFIRM_LABELS, CONFIRM_COUNT, selectedIndex_, CONFIRM_LIST_Y);
 }

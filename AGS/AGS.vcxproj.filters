@@ -157,9 +157,10 @@
     <FxCompile Include="Src\Shader\Vertex\LightPS.hlsl" />
     <FxCompile Include="Src\Shader\Vertex\LightVS.hlsl" />
     <FxCompile Include="Src\Shader\Vertex\EnemyPS.hlsl" />
-    <FxCompile Include="Src\Shader\Vertex\EnemyVS.hlsl" />
     <FxCompile Include="Src\Shader\Vertex\GoalPS.hlsl" />
     <FxCompile Include="Src\Shader\Vertex\GoalVS.hlsl" />
+    <FxCompile Include="Src\Shader\Vertex\EnemyVS4.hlsl" />
+    <FxCompile Include="Src\Shader\Vertex\EnemyVS8.hlsl" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Src\Shader\Common\VertexToPixelHeader.hlsli" />
@@ -169,5 +170,6 @@
     <None Include="Src\Shader\Common\Vertex\VertexShader3DHeader.hlsli" />
     <None Include="Src\Shader\Common\Pixel\PixelShader2DHeader.hlsli" />
     <None Include="Src\Shader\Common\Pixel\PixelShader3DHeader.hlsli" />
+    <None Include="Src\Shader\Vertex\EnemyVSBody.hlsli" />
   </ItemGroup>
 </Project>

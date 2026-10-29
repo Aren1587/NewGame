@@ -8,18 +8,6 @@ class PixelRenderer
 
 public:
 
-	// ピクセルシェーダ用オリジナル定数バッファの使用開始スロット
-	static constexpr int CONSTANT_BUF_SLOT_BEGIN_PS = 4;
-
-	// 頂点数
-	static constexpr int NUM_VERTEX = 4;
-
-	// 頂点インデックス数
-	static constexpr int NUM_VERTEX_IDX = 6;
-
-	// ポリゴン数
-	static constexpr int NUM_POLYGON = 2;
-
 	// コンストラクタ
 	PixelRenderer(PixelMaterial& pixelMaterial);
 
@@ -41,6 +29,12 @@ public:
 	void Draw(int x, int y);
 
 private:
+
+	// 頂点数
+	static constexpr int NUM_VERTEX = 4;
+
+	// 頂点インデックス数
+	static constexpr int NUM_VERTEX_IDX = 6;
 
 	// 座標
 	Vector2 pos_;

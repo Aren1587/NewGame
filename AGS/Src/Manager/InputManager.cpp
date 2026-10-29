@@ -373,7 +373,6 @@ VECTOR InputManager::GetDirectionXZAKey(int aKeyX, int aKeyY)
 	float len = sqrtf(dirX * dirX + dirZ * dirZ);
 	if (len < THRESHOLD)
 	{
-		// (0.0f, 0.0f, 0.0f)
 		return ret;
 	}
 

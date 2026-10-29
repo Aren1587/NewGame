@@ -1,6 +1,15 @@
 #include "PixelRenderer.h"
 #include "../Application.h"
 
+namespace
+{
+	// ピクセルシェーダ用オリジナル定数バッファの使用開始スロット
+	constexpr int CONSTANT_BUF_SLOT_BEGIN_PS = 4;
+
+	// ポリゴン数
+	constexpr int NUM_POLYGON = 2;
+}
+
 PixelRenderer::PixelRenderer(PixelMaterial& pixelMaterial) : pixelMaterial_(pixelMaterial)
 {
 }

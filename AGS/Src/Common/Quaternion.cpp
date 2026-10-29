@@ -3,6 +3,11 @@
 #include "../Utility/AsoUtility.h"
 #include "Quaternion.h"
 
+namespace
+{
+    constexpr float K_EPSILON_NORMAL_SQRT = 1e-15F;
+}
+
 Quaternion::Quaternion(void)
 {
     w = 1;
@@ -49,11 +54,6 @@ Quaternion Quaternion::Euler(double radX, double radY, double radZ)
     double sinX = sin(radX / 2.0f);
     double cosY = cos(radY / 2.0f);
     double sinY = sin(radY / 2.0f);
-
-    //ret.w = cosZ * cosX * cosY + sinZ * sinX * sinY;
-    //ret.x = sinZ * cosX * cosY - cosZ * sinX * sinY;
-    //ret.y = cosZ * sinX * cosY + sinZ * cosX * sinY;
-    //ret.z = cosZ * cosX * sinY - sinZ * sinX * cosY;
 
     ret.w = cosX * cosY * cosZ + sinX * sinY * sinZ;
     ret.x = sinX * cosY * cosZ + cosX * sinY * sinZ;

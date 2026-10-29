@@ -5,6 +5,7 @@
 class Light
 {
 public:
+
 	Light();
 	~Light();
 
@@ -23,6 +24,7 @@ public:
 	const VECTOR& GetLightPos() { return pointLightPos_; }
 
 private:
+
 	struct LightInfo
 	{
 		bool isActive;   // ƒ‰ƒCƒg‚ðŽg‚¤‚©‚Ç‚¤‚©

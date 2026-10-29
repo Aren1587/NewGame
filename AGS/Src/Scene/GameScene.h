@@ -32,7 +32,6 @@ private:
 
 	VECTOR circlePos_;
 	float pow_;
-	float moveSpeed_;
 
 	float lightPow_;
 

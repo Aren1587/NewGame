@@ -1,6 +1,12 @@
 #include "../Application.h"
 #include "PixelMaterial.h"
 
+namespace
+{
+	// 設定できる最大のテクスチャの数
+	constexpr int MAX_TEXTURES = 4;
+}
+
 PixelMaterial::PixelMaterial(std::string shaderFileName, int constBufFloat4Size)
 {
 

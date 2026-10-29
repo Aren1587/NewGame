@@ -19,6 +19,8 @@ namespace
 	constexpr float MAX_DISTANCE = 1000.0f;
 
 	constexpr float INIT_POW = 20.0f;
+
+	constexpr float MOVE_SPEED = 20.0f;
 }
 
 GameScene::GameScene(void)
@@ -27,7 +29,6 @@ GameScene::GameScene(void)
 	enemy_(nullptr),
 	circlePos_({}),
 	pow_(INIT_POW),
-	moveSpeed_(20.0f),
 	lightPow_(0.0f),
 	isCollision_(false),
 	moveDir_({}),
@@ -128,8 +129,6 @@ void GameScene::Update(void)
 		circlePos_ = VAdd(cameraPos, moveDir_);
 
 		pow_ = 0.0f;
-		moveSpeed_ = 20.0f;  // 移動速度
-		
 	}
 
 	lightPow_ -= 0.001f * SceneManager::GetInstance().GetDeltaTime();
@@ -158,7 +157,7 @@ void GameScene::Draw(void)
 		// ライトを一時的に無効化
 		SetUseLighting(FALSE);
 		// 球を描画（常に明るく見える）
-		DrawSphere3D(circlePos_, CIRCLE_RADIUS, 10, 0xff0000, 0xffffff, TRUE);
+		//DrawSphere3D(circlePos_, CIRCLE_RADIUS, 10, 0xff0000, 0xffffff, TRUE);
 		// ライトを元に戻す
 		SetUseLighting(TRUE);
 	}
@@ -316,7 +315,7 @@ void GameScene::DistanceSoundVolume(const VECTOR& soundPos, const VECTOR& soundP
 
 void GameScene::CircleMove(void)
 {
-	circlePos_ = VAdd(circlePos_, VScale(moveDir_, moveSpeed_ * SceneManager::GetInstance().GetDeltaTime()));
+	circlePos_ = VAdd(circlePos_, VScale(moveDir_, MOVE_SPEED * SceneManager::GetInstance().GetDeltaTime()));
 
 	circlePos_.x += movePow_.x * SceneManager::GetInstance().GetDeltaTime();
 	pow_ -= GRAVITY * SceneManager::GetInstance().GetDeltaTime();

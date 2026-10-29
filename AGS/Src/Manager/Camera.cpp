@@ -1,7 +1,6 @@
 #include <EffekseerForDXLib.h>
 #include "../Utility/AsoUtility.h"
 #include "../Manager/InputManager.h"
-#include "../Application.h"
 #include "SceneManager.h"
 #include "Camera.h"
 
@@ -62,9 +61,6 @@ void Camera::Update(void)
 // 描画前のカメラ設定
 void Camera::SetBeforeDraw(void)
 {
-	// クリップ距離を設定
-	//SetCameraNearFar(CAMERA_NEAR, farClip_);
-
 	switch (mode_)
 	{
 	case Camera::MODE::FIXED_POINT:
@@ -229,7 +225,6 @@ void Camera::SetBeforeDrawFree(void)
 			// XYZの回転行列
 			// XZ平面移動にする場合は、XZの回転を考慮しないようにする
 			MATRIX mat = MGetIdent();
-			//mat = MMult(mat, MGetRotX(angles_.x));
 
 			mat = MMult(mat, MGetRotY(angles_.y));
 

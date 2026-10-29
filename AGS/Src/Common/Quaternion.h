@@ -7,7 +7,6 @@
 class Quaternion
 {
 public:
-	static constexpr float kEpsilonNormalSqrt = 1e-15F;
 
 	double w;
 	double x;

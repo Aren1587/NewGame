@@ -2,6 +2,7 @@
 
 #include <DxLib.h>
 #include <memory>
+#include <vector>
 
 class ModelMaterial;
 class ModelRenderer;
@@ -57,8 +58,13 @@ public:
 	void StartLight(const VECTOR& pos);
 
 private:
-	std::unique_ptr<ModelMaterial> vertexMaterial_;
-	std::unique_ptr<ModelRenderer> vertexRenderer_;
+	// 4FRAME 用(ボーン影響 4 本まで)
+	std::unique_ptr<ModelMaterial> material4_;
+	std::unique_ptr<ModelRenderer> renderer4_;
+
+	// 8FRAME 用(ボーン影響 8 本まで)
+	std::unique_ptr<ModelMaterial> material8_;
+	std::unique_ptr<ModelRenderer> renderer8_;
 
 	// アニメーションコントローラ
 	std::unique_ptr<AnimationController> animationController_;
@@ -84,13 +90,22 @@ private:
 
 	bool isCollision_;
 
-	float time_;
-
+	// 光の輪
 	VECTOR lightPos_;
 	float lightRadius_;
 	float notLightRadius_;
 	bool isExpand_;
 
+	// メッシュごとに 8FRAME 用か
+	std::vector<bool> meshUse8_;
+	bool hasMesh4_;
+	bool hasMesh8_;
+
 	void Move();
 
+	// PS の定数バッファを更新
+	void UpdateMaterial(ModelMaterial& material);
+
+	// 指定グループのメッシュだけを表示にする
+	void SetMeshGroupVisible(bool use8);
 };
